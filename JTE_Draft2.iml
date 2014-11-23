@@ -7,5 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="PropertiesManager" level="project" />
+    <orderEntry type="library" name="XMLUtilities" level="project" />
   </component>
 </module>

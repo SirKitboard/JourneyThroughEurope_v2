@@ -25,7 +25,7 @@ public class JTEErrorHandler {
      * @param errorType Identifies the type of error that happened, which allows
      * us to get and display different text for different errors.
      */
-    public void processError(Main.JTEPropertyType errorType) {
+    public void processError(Main.JTEPropertyType errorType, Stage primaryStage) {
         // GET THE FEEDBACK TEXT
         PropertiesManager props = PropertiesManager.getPropertiesManager();
         String errorFeedbackText = props.getProperty(errorType);
@@ -37,7 +37,7 @@ public class JTEErrorHandler {
         //JOptionPane.showMessageDialog(window, errorFeedbackText, errorTitle, JOptionPane.ERROR_MESSAGE);
         Stage dialogStage = new Stage();
         dialogStage.initModality(Modality.WINDOW_MODAL);
-        dialogStage.initOwner(ui);
+        dialogStage.initOwner(primaryStage);
         dialogStage.setTitle(errorTitle);
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);
@@ -51,7 +51,7 @@ public class JTEErrorHandler {
 			dialogStage.close();
 		});
     }
-    public void processError(String name) {
+    public void processError(String name, Stage primaryStage) {
         // GET THE FEEDBACK TEXT
         PropertiesManager props = PropertiesManager.getPropertiesManager();
 
@@ -60,7 +60,7 @@ public class JTEErrorHandler {
         //JOptionPane.showMessageDialog(window, errorFeedbackText, errorTitle, JOptionPane.ERROR_MESSAGE);
         Stage dialogStage = new Stage();
         dialogStage.initModality(Modality.WINDOW_MODAL);
-        dialogStage.initOwner(ui);
+        dialogStage.initOwner(primaryStage);
         dialogStage.setTitle("City Clicked");
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);

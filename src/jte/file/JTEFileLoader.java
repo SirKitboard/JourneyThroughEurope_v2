@@ -61,7 +61,7 @@ public class JTEFileLoader {
 				list.add(array[0]);
 			}
 		} catch (IOException e) {
-			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE);
+			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
 		}
 		return list;
 	}
@@ -80,7 +80,7 @@ public class JTEFileLoader {
 				data.put(array[0],city);
 			}
 		} catch (IOException e) {
-			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE);
+			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
 		}
 		return data;
 	}

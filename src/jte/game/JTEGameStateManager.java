@@ -1,6 +1,7 @@
 package jte.game;
 
 import jte.ui.JTEUI;
+import sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,15 +11,7 @@ public class JTEGameStateManager {
     // THE GAME WILL ALWAYS BE IN
     // ONE OF THESE STATES
     public enum JTEGameState {
-        GAME_NOT_STARTED, GAME_IN_PROGRESS, GAME_OVER,
-        LEVEL1, 
-        LEVEL2, 
-        LEVEL3, 
-        LEVEL4, 
-        LEVEL5, 
-        LEVEL6, 
-        LEVEL7 
-        
+        GAME_NOT_STARTED, GAME_IN_PROGRESS, GAME_OVER
     }
 
     // STORES THE CURRENT STATE OF THIS GAME
@@ -27,7 +20,6 @@ public class JTEGameStateManager {
     // WHEN THE STATE OF THE GAME CHANGES IT WILL NEED TO BE
     // REFLECTED IN THE USER INTERFACE, SO THIS CLASS NEEDS
     // A REFERENCE TO THE UI
-    private JTEUI ui;
 
     // THIS IS THE GAME CURRENTLY BEING PLAYED
     private JTEGameData gameInProgress;
@@ -38,15 +30,13 @@ public class JTEGameStateManager {
 
     private final String NEWLINE_DELIMITER = "\n";
 
-    public JTEGameStateManager(JTEUI initUI) {
-        ui = initUI;
-
+    public JTEGameStateManager() {
         // WE HAVE NOT STARTED A GAME YET
         currentGameState = JTEGameState.GAME_NOT_STARTED;
 
         // NO GAMES HAVE BEEN PLAYED YET, BUT INITIALIZE
         // THE DATA STRCUTURE FOR PLACING COMPLETED GAMES
-        gamesHistory = new ArrayList();
+        gamesHistory = new ArrayList<>();
 
         // THE FIRST GAME HAS NOT BEEN STARTED YET
         gameInProgress = null;
@@ -126,9 +116,9 @@ public class JTEGameStateManager {
 
             // TODO
             // IF IT ENDED IN A WIN, INC THE COUNTER
-            if (game.isWon()) {
-                wins++;
-            }
+            //if (game.isWon()) {
+            //    wins++;
+            //}
         }
         return wins;
     }
@@ -149,9 +139,9 @@ public class JTEGameStateManager {
 
             // TODO
             // IF IT ENDED IN A LOSS, INC THE COUNTER
-            if (game.isLost()) {
-                losses++;
-            }
+            //if (game.isLost()) {
+            //    losses++;
+            //}
         }
         return losses;
     }
@@ -163,39 +153,6 @@ public class JTEGameStateManager {
      * @return The completed jte.game that the player won requiring the least amount
      * of time.
      */
-    public JTEGameData getFastestWin() {
-        // IF NO GAMES HAVE BEEN PLAYED, THERE IS
-        // NOTHING TO RETURN
-        if (gamesHistory.isEmpty()) {
-            return null;
-        }
-
-        // NOTE THAT ALL THE GAMES PLAYED MAY BE LOSSES
-        JTEGameData fastest = null;
-
-        // GO THROUGH ALL THE GAMES THAT HAVE BEEN PLAYED
-        Iterator<JTEGameData> it = gamesHistory.iterator();
-        while (it.hasNext()) {
-            // GET THE NEXT GAME IN THE SEQUENCE
-            JTEGameData game = it.next();
-
-            // WE ONLY CONSIDER GAMES THAT WERE WON
-            if (game.isWon()) {
-                // IF IT'S THE FIRST WIN FOUND, START OUT
-                // WITH IT AS THE FASTEST UNTIL WE FIND ONE BETTER
-                if (fastest == null) {
-                    fastest = game;
-                } // OTHERWISE IF IT IS FASTER THEN
-                // MAKE IT THE FASTEST           
-                else if (game.getTimeOfGame() < fastest.getTimeOfGame()) {
-                    fastest = game;
-                }
-            }
-        }
-        // RETURN THE FASTEST GAME
-        return fastest;
-    }
-
     /**
      * This method starts a new jte.game, initializing all the necessary data for
      * that new jte.game as well as recording the current jte.game (if it exists) in the
@@ -214,12 +171,6 @@ public class JTEGameStateManager {
         // DATA STRUCTURE. NOTE THAT IF THE PLAYER WON THE GAME, IT WOULD HAVE
         // ALREADY BEEN SAVED SINCE THERE WOULD BE NO GUARANTEE THE PLAYER WOULD
         // CHOOSE TO PLAY AGAIN
-        if (isGameInProgress() && !gameInProgress.isWon()) {
-            // QUIT THE GAME, WHICH SETS THE END TIME
-            gameInProgress.giveUp();
-
-            // TODO: add jte.game result to stats page
-        }
 
         // AND NOW MAKE A NEW GAME
         makeNewGame();
@@ -234,6 +185,7 @@ public class JTEGameStateManager {
      */
     public void makeNewGame() {
         // TODO: create a jte.game for a level
+        JTEUI ui = JTEUI.getUI();
         gameInProgress = new JTEGameData(ui);
 
         // THE GAME IS OFFICIALLY UNDERWAY

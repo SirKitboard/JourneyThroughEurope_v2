@@ -215,8 +215,8 @@ public class JTEGameScreen {
 			City clicked = gameData.getCity(scaledx, scaledy, selectedQuad);
 			System.out.printf("Name : %s\nX Coord : %.2f\nY Coord : %.2f", clicked.getName(), clicked.getX() * scaleRatio, clicked.getY() * scaleRatio);
 			ui.getFileLoader().addToHistory(clicked.getName());
-			ui.getErrorHandler().processError(clicked.getName());
-			ui.refreshHistory();
+			ui.getErrorHandler().processError(clicked.getName(), ui.getPrimaryStage());
+			ui.getHistoryScreen().refreshHistory();
 		} catch (CityNotFoundException e) {
 			System.out.print("No city at given coordinates");
 		}

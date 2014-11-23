@@ -37,9 +37,10 @@ public class Main extends Application {
 			primaryStage.setFullScreen(true);
 
 			JTEUI root = JTEUI.getUI();
+			root.initUI();
 			BorderPane mainPane = root.getMainPane();
 			root.SetStage(primaryStage);
-
+			primaryStage.setResizable(false);
 			Scene scene = new Scene(mainPane, mainPane.getWidth(), mainPane.getHeight());
 			primaryStage.setScene(scene);
 			primaryStage.show();

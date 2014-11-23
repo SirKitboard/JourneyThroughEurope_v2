@@ -11,6 +11,7 @@ import properties_manager.PropertiesManager;
 import jte.handlers.*;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class JTEUI extends Pane {
 
@@ -182,8 +183,9 @@ public class JTEUI extends Pane {
 				ai++;
 			}
 		}
+		ArrayList<String> names = playerSelectScreen.getNames(humans+ai);
 		eventHandler.respondToNewGameRequest();
-		jteGameScreen = new JTEGameScreen(humans,ai);
+		jteGameScreen = new JTEGameScreen(humans,ai,names);
 		switchPane(5);
 		historyScreen = new JTEHistoryScreen();
 	}

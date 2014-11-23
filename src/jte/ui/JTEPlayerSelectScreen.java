@@ -21,6 +21,7 @@ public class JTEPlayerSelectScreen extends BorderPane{
 	ArrayList<ImageView> playerFlags;
 	ArrayList<RadioButton> playerRadio;
 	ArrayList<RadioButton> aiRadio;
+	ArrayList<TextField> nameF = new ArrayList<>();
 	public JTEPlayerSelectScreen() {
 		JTEUI ui = JTEUI.getUI();
 		this.setPadding(ui.getMarginlessInsets());
@@ -61,8 +62,8 @@ public class JTEPlayerSelectScreen extends BorderPane{
 			VBox name = new VBox();
 			name.setMaxWidth(ui.getPaneWidth()/ 9.0 - 5);
 			Label nameL = new Label("Name : ");
-			TextField nameF = new TextField();
-			name.getChildren().addAll(nameL,nameF);
+			nameF.add(new TextField("Player "+(i+1)));
+			name.getChildren().addAll(nameL,nameF.get(i));
 			RadioButton playerT = new RadioButton("Player");
 			RadioButton cpu = new RadioButton("Computer");
 			playerRadio.add(playerT);
@@ -93,5 +94,13 @@ public class JTEPlayerSelectScreen extends BorderPane{
 
 	public ArrayList<RadioButton> getRadios() {
 		return playerRadio;
+	}
+
+	public ArrayList<String> getNames(int n) {
+		ArrayList<String> temp  = new ArrayList<>();
+		for(int i=0;i<n;i++) {
+			temp.add(nameF.get(i).getText());
+		}
+		return temp;
 	}
 }

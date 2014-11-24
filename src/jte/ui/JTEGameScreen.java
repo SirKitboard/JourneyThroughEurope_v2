@@ -14,6 +14,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.CircleBuilder;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.LineBuilder;
 import javafx.util.Duration;
 import jte.game.City;
 import jte.game.CityNotFoundException;
@@ -38,7 +42,6 @@ public class JTEGameScreen {
 	ArrayList<Player> player;
 	ImageView board;
 	Insets marginlessInsets;
-	int selectedQuad;
 	MouseHandler mouseHandler;
 	double scaleRatio;
 	ArrayList<String> names;
@@ -48,6 +51,8 @@ public class JTEGameScreen {
 	Pane boardI;
 	int counter;
 	int activePlayer;
+	ArrayList<Line> lines;
+	ArrayList<Circle> circles;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -57,6 +62,8 @@ public class JTEGameScreen {
 		gameData = ui.getGSM().getGameInProgress();
 		player =gameData.getPlayer();
 		mouseHandler = new MouseHandler();
+		lines = new ArrayList<>();
+		circles = new ArrayList<>();
 		b1 = new Button();
 		b2 = new Button();
 		b3 = new Button();
@@ -106,11 +113,13 @@ public class JTEGameScreen {
 		board.setPreserveRatio(true);
 		board.setFitHeight(ui.getPaneHeight() * 3);
 		boardI.setMinHeight(ui.getPaneHeight() * 3);
-		boardI.setMinWidth(ui.getPaneWidth()/scaleRatio);
+		boardI.setMinWidth(ui.getPaneWidth() / scaleRatio);
 		System.out.println("Image : " + board.getBoundsInParent().getHeight() + " " + board.getBoundsInParent().getWidth());
 		System.out.println("Pane : " + boardI.getHeight() + " " + boardI.getWidth());
 		boardPane = new Pane();
-		boardI.setOnMouseClicked(e -> mouseHandler.mouseClicked(e));
+		boardI.setOnMouseReleased(e -> {
+			mouseHandler.mouseReleased(e);
+		});
 		boardI.setOnMousePressed(e -> {
 			mouseHandler.mousePressed(e);
 		});
@@ -243,23 +252,7 @@ public class JTEGameScreen {
 			City clicked = gameData.getCity(scaledx, scaledy);
 			City origin = gameData.getCity(scaledxO, scaledyO);
 			ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
-			if(origin.getLandConnections().contains(clicked)) {
-				TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
-				translateTransition.setByX((clicked.getActualx() - origin.getActualx()) * scaleRatio);
-				translateTransition.setByY((clicked.getActualy() - origin.getActualy()) * scaleRatio);
-				translateTransition.play();
-				translateTransition.setOnFinished(e -> {
-					translateTransition.stop();
-					TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1),playerImages.get(activePlayer));
-					translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
-					translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
-					translateTransition1.play();
-					playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
-					playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
-				});
-			}
-			ui.getFileLoader().addToHistory(clicked.getName());
-			ui.getHistoryScreen().refreshHistory();
+			playerMoved(origin,clicked);
 		} catch (CityNotFoundException e) {
 			//System.out.print("No city at given coordinates");
 		}
@@ -299,6 +292,13 @@ public class JTEGameScreen {
 			translateTransition.setToY(5 + (counter * ui.getPaneHeight() * 0.10));
 			translateTransition.play();
 		}
+		double scaledxO = (playerImages.get(activePlayer).getLayoutX()+10)/scaleRatio;
+		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
+		try {
+			drawLines(gameData.getCity(scaledxO,scaledyO));
+		} catch (CityNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public int getActivePlayer() {
@@ -318,9 +318,87 @@ public class JTEGameScreen {
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);
 			ds1.setColor(Color.BLACK);
-
 			playerImages.get(i).setEffect(ds1);
-
 		}
+		drawLines(player.get(0).getHome());
+	}
+
+	public double getScaleRatio() {
+		return scaleRatio;
+	}
+
+	public JTEGameData getGameData() {
+		return gameData;
+	}
+
+	public void drawLines(City city) {
+		for(int i=0;i<lines.size();i++) {
+			boardI.getChildren().removeAll(lines.get(i), circles.get(i));
+		}
+		lines = new ArrayList<>();
+		circles = new ArrayList<>();
+		for(int i=0;i<city.getLandConnections().size();i++) {
+			lines.add(LineBuilder.create()
+					.startX(city.getActualx() * scaleRatio)
+					.startY(city.getActualy() * scaleRatio)
+					.endX(city.getLandConnections().get(i).getActualx() * scaleRatio)
+					.endY(city.getLandConnections().get(i).getActualy() * scaleRatio)
+					.fill(Color.RED)
+					.strokeWidth(5f)
+					.stroke(Color.RED)
+					.build());
+			circles.add(CircleBuilder.create()
+					.centerX(city.getLandConnections().get(i).getActualx() * scaleRatio)
+					.centerY(city.getLandConnections().get(i).getActualy() * scaleRatio)
+					.radius(15f)
+					.fill(Color.RED)
+					.strokeWidth(2f)
+					.stroke(Color.BLACK)
+					.build());
+			boardI.getChildren().addAll(lines.get(i), circles.get(i));
+		}
+		for(int i=0;i<city.getSeaConnections().size();i++) {
+			lines.add(LineBuilder.create()
+					.startX(city.getActualx() * scaleRatio)
+					.startY(city.getActualy() * scaleRatio)
+					.endX(city.getSeaConnections().get(i).getActualx() * scaleRatio)
+					.endY(city.getSeaConnections().get(i).getActualy() * scaleRatio)
+					.fill(Color.CYAN)
+					.strokeWidth(5f)
+					.stroke(Color.CYAN)
+					.build());
+			circles.add(CircleBuilder.create()
+					.centerX(city.getSeaConnections().get(i).getActualx() * scaleRatio)
+					.centerY(city.getSeaConnections().get(i).getActualy() * scaleRatio)
+					.radius(15f)
+					.fill(Color.CYAN)
+					.strokeWidth(2f)
+					.stroke(Color.BLACK)
+					.build());
+			boardI.getChildren().addAll(lines.get(i + city.getLandConnections().size()), circles.get(i + city.getLandConnections().size()));
+		}
+	}
+
+	public void playerMoved(City origin, City clicked) {
+		JTEUI ui = JTEUI.getUI();
+		if(origin.getLandConnections().contains(clicked)) {
+			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+			translateTransition.setByX((clicked.getActualx() - origin.getActualx()) * scaleRatio);
+			translateTransition.setByY((clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			translateTransition.play();
+			translateTransition.setOnFinished(e -> {
+				translateTransition.stop();
+				TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1),playerImages.get(activePlayer));
+				translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
+				translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
+				translateTransition1.play();
+				playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+				playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+				drawLines(clicked);
+			});
+		}
+
+		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getHistoryScreen().refreshHistory();
 	}
 }

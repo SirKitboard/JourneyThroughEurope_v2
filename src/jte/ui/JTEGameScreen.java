@@ -47,6 +47,7 @@ public class JTEGameScreen {
 	Pane boardPane;
 	Pane boardI;
 	int counter;
+	int activePlayer;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -236,14 +237,31 @@ public class JTEGameScreen {
 		int y = (int)me.getY();
 		double scaledx = x/scaleRatio;
 		double scaledy = y/scaleRatio;
+		double scaledxO = (playerImages.get(activePlayer).getLayoutX()+10)/scaleRatio;
+		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
 		try {
 			City clicked = gameData.getCity(scaledx, scaledy);
-			System.out.printf("Name : %s\nX Coord : %.2f\nY Coord : %.2f", clicked.getName(), clicked.getX() * scaleRatio, clicked.getY() * scaleRatio);
+			City origin = gameData.getCity(scaledxO, scaledyO);
+			ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
+			if(origin.getLandConnections().contains(clicked)) {
+				TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+				translateTransition.setByX((clicked.getActualx() - origin.getActualx()) * scaleRatio);
+				translateTransition.setByY((clicked.getActualy() - origin.getActualy()) * scaleRatio);
+				translateTransition.play();
+				translateTransition.setOnFinished(e -> {
+					translateTransition.stop();
+					TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1),playerImages.get(activePlayer));
+					translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
+					translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
+					translateTransition1.play();
+					playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+					playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+				});
+			}
 			ui.getFileLoader().addToHistory(clicked.getName());
-			ui.getErrorHandler().processError(clicked.getName(), ui.getPrimaryStage());
 			ui.getHistoryScreen().refreshHistory();
 		} catch (CityNotFoundException e) {
-			System.out.print("No city at given coordinates");
+			//System.out.print("No city at given coordinates");
 		}
 	}
 
@@ -262,6 +280,7 @@ public class JTEGameScreen {
 	public void switchCards(int playerPos) {
 		JTEUI ui = JTEUI.getUI();
 		cardPane.getChildren().removeAll();
+		activePlayer = playerPos;
 		for(counter=0;counter<player.get(playerPos).getHand().size();counter++) {
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
@@ -277,9 +296,13 @@ public class JTEGameScreen {
 			translateTransition.setFromX(ui.getPaneWidth()/2);
 			translateTransition.setFromY(ui.getPaneHeight() / 2);
 			translateTransition.setToX(5);
-			translateTransition.setToY(5+(counter*ui.getPaneHeight()*0.10));
+			translateTransition.setToY(5 + (counter * ui.getPaneHeight() * 0.10));
 			translateTransition.play();
 		}
+	}
+
+	public int getActivePlayer() {
+		return activePlayer;
 	}
 
 	void initPlayerPositions() {
@@ -289,8 +312,8 @@ public class JTEGameScreen {
 			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
 			System.out.println(player.get(i).getHome() + " " + player.get(i).getHome().getActualx() * scaleRatio + " " + player.get(i).getHome().getActualy() * scaleRatio);
 			boardI.getChildren().add(playerImages.get(i));
-			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio - 10);
-			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio - 50);
+			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio - 10 - playerImages.get(i).getBoundsInParent().getMinX());
+			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio - 50 - playerImages.get(i).getBoundsInParent().getMinY());
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);

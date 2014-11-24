@@ -1,5 +1,7 @@
 package jte.game;
 
+import java.util.ArrayList;
+
 /**
  * Created by Aditya on 11/9/2014.
  */
@@ -10,6 +12,9 @@ public class City {
 	int y;
 	int actualx;
 	int actualy;
+
+	ArrayList<City> landConnections;
+	ArrayList<City> seaConnections;
 
 	public String getName() {
 		return name;
@@ -59,6 +64,16 @@ public class City {
 			actualx = x + 1980;
 			actualy = y + 2559;
 		}
+		landConnections = new ArrayList<>();
+		seaConnections = new ArrayList<>();
+	}
+
+	public ArrayList<City> getLandConnections() {
+		return landConnections;
+	}
+
+	public ArrayList<City> getSeaConnections() {
+		return seaConnections;
 	}
 
 	public int getActualy() {

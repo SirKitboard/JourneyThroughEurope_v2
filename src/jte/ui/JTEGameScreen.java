@@ -1,5 +1,7 @@
 package jte.ui;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import jte.game.City;
 import jte.game.CityNotFoundException;
 import jte.game.JTEGameData;
@@ -43,6 +46,7 @@ public class JTEGameScreen {
 	ArrayList<ImageView> playerImages;
 	Pane boardPane;
 	Pane boardI;
+	int counter;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -77,7 +81,6 @@ public class JTEGameScreen {
 		playerImages.add(new ImageView(ui.loadImage("piece_yellow.png")));
 		initGameScreen();
 	}
-
 	public void initGameScreen() {
 		JTEUI ui = JTEUI.getUI();
 		marginlessInsets = new Insets(5, 5, 5, 5);
@@ -92,7 +95,6 @@ public class JTEGameScreen {
 		leftBar.getChildren().add(label);
 		cardPane = new Pane();
 		cardPane.setMinWidth(ui.getPaneWidth() * 0.20);
-		switchCards(0);
 		label.valueProperty().addListener(e -> switchCards(names.indexOf(label.getValue())));
 		leftBar.setStyle("-fx-background-color: #D1B48C;");
 		leftBar.getChildren().add(cardPane);
@@ -165,7 +167,7 @@ public class JTEGameScreen {
 		gameScreen.setLeft(leftBar);
 		initPlayerPositions();
 		mainPane.getChildren().addAll(gameScreen);
-
+		switchCards(0);
 	}
 
 	public void topLeft() {
@@ -260,19 +262,23 @@ public class JTEGameScreen {
 	public void switchCards(int playerPos) {
 		JTEUI ui = JTEUI.getUI();
 		cardPane.getChildren().removeAll();
-		for(int i=0;i<player.get(playerPos).getHand().size();i++) {
+		for(counter=0;counter<player.get(playerPos).getHand().size();counter++) {
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);
 			ds1.setColor(Color.GREY);
-			Image image = ui.loadImage(player.get(playerPos).getHand().get(i).toString());
+			Image image = ui.loadImage(player.get(playerPos).getHand().get(counter).toString());
 			ImageView imageView = new ImageView(image);
 			imageView.setPreserveRatio(true);
-			imageView.setX(5);
 			imageView.setFitWidth(ui.getPaneWidth() * 0.19);
-			imageView.setY(5+(i*ui.getPaneHeight()*0.10));
 			cardPane.getChildren().add(imageView);
 			imageView.setEffect(ds1);
+			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300),imageView);
+			translateTransition.setFromX(ui.getPaneWidth()/2);
+			translateTransition.setFromY(ui.getPaneHeight() / 2);
+			translateTransition.setToX(5);
+			translateTransition.setToY(5+(counter*ui.getPaneHeight()*0.10));
+			translateTransition.play();
 		}
 	}
 

@@ -76,9 +76,56 @@ public class JTEFileLoader {
 			while(cities.hasNext()) {
 				String value = cities.nextLine();
 				String[] array = value.split(",");
-				City city = new City(array[0],array[1],Integer.parseInt(array[2]),Integer.parseInt(array[3]),Integer.parseInt(array[4]));
+				City city = new City(array[0].trim(),array[1],Integer.parseInt(array[2]),Integer.parseInt(array[3]),Integer.parseInt(array[4]));
 				data.put(array[0],city);
 			}
+
+			cities = new Scanner(file);
+			cities.nextLine();
+			while(cities.hasNext()) {
+				String value = cities.nextLine();
+				String[] array = value.split(",");
+				City temp = data.get(array[0]);
+				String[] lCon = array[5].split("!");
+				String[] sCon = array[6].split("!");
+				for(int j=0;j<lCon.length;j++) {
+					if(!lCon[j].trim().equals("")) {
+						if(data.containsKey(lCon[j].trim())) {
+							temp.getLandConnections().add(data.get(lCon[j].trim()));
+						}
+						else {
+							System.out.println(temp.getName() + " -> " + lCon[j]);
+						}
+					}
+				}
+				for(int j=0;j<sCon.length;j++) {
+					if(!sCon[j].trim().equals("")) {
+						if(data.containsKey(sCon[j].trim())) {
+							temp.getSeaConnections().add(data.get(sCon[j].trim()));
+						}
+						else {
+							System.out.println(temp.getName() + " -> " + sCon[j]);
+						}
+					}
+				}
+			}
+//			System.out.println("VERIFICATION");
+//			cities = new Scanner(file);
+//			cities.nextLine();
+//			while(cities.hasNext()) {
+//				String value = cities.nextLine();
+//				String[] array = value.split(",");
+//				City temp = data.get(array[0]);
+//				ArrayList<City> land = temp.getLandConnections();
+//				ArrayList<City> sea = temp.getSeaConnections();
+//				for(int i=0;i<sea.size();i++) {
+//					City temp2 = data.get(sea.get(i).getName());
+//					if(temp2.getSeaConnections().indexOf(temp)==-1) {
+//						System.out.println(temp2.getName() + " -> " + temp.getName());
+//					}
+//				}
+//			}
+
 		} catch (IOException e) {
 			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
 		}

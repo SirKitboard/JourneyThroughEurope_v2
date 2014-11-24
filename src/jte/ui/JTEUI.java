@@ -184,7 +184,7 @@ public class JTEUI extends Pane {
 			}
 		}
 		ArrayList<String> names = playerSelectScreen.getNames(humans+ai);
-		eventHandler.respondToNewGameRequest();
+		eventHandler.respondToNewGameRequest(humans, ai);
 		jteGameScreen = new JTEGameScreen(humans,ai,names);
 		switchPane(5);
 		historyScreen = new JTEHistoryScreen();

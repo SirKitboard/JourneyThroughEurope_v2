@@ -32,13 +32,17 @@ public class JTEGameScreen {
 	Button b2;
 	Button b3;
 	Button b4;
-	Player player;
+	ArrayList<Player> player;
 	ImageView board;
 	Insets marginlessInsets;
 	int selectedQuad;
 	MouseHandler mouseHandler;
 	double scaleRatio;
 	ArrayList<String> names;
+	Pane cardPane;
+	ArrayList<ImageView> playerImages;
+	Pane boardPane;
+	Pane boardI;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -47,9 +51,6 @@ public class JTEGameScreen {
 		this.ai = ai;
 		gameData = ui.getGSM().getGameInProgress();
 		player =gameData.getPlayer();
-		for(int i=0;i<3;i++) {
-			player.getHand().remove(0);
-		}
 		mouseHandler = new MouseHandler();
 		b1 = new Button();
 		b2 = new Button();
@@ -67,6 +68,13 @@ public class JTEGameScreen {
 		b2.setOnAction(e -> topRight());
 		b3.setOnAction(e -> bottomLeft());
 		b4.setOnAction(e -> bottomRight());
+		playerImages = new ArrayList<>();
+		playerImages.add(new ImageView(ui.loadImage("piece_black.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_blue.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_green.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_red.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_white.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_yellow.png")));
 		initGameScreen();
 	}
 
@@ -82,41 +90,34 @@ public class JTEGameScreen {
 		label.setMinWidth(ui.getPaneWidth() * 0.20);
 		label.setMinHeight(30);
 		leftBar.getChildren().add(label);
-		Pane pane = new Pane();
-		pane.setMinWidth(ui.getPaneWidth() * 0.20);
-
-		for(int i=0;i<player.getHand().size();i++) {
-			DropShadow ds1 = new DropShadow();
-			ds1.setOffsetY(-2.0f);
-			ds1.setOffsetX(4.0f);
-			ds1.setColor(Color.GREY);
-			Image image = ui.loadImage(player.getHand().get(i).toString());
-			ImageView imageView = new ImageView(image);
-			imageView.setPreserveRatio(true);
-			imageView.setX(5);
-			imageView.setFitWidth(ui.getPaneWidth() * 0.19);
-			imageView.setY(5+(i*ui.getPaneHeight()*0.10));
-			pane.getChildren().add(imageView);
-			imageView.setEffect(ds1);
-		}
+		cardPane = new Pane();
+		cardPane.setMinWidth(ui.getPaneWidth() * 0.20);
+		switchCards(0);
+		label.valueProperty().addListener(e -> switchCards(names.indexOf(label.getValue())));
 		leftBar.setStyle("-fx-background-color: #D1B48C;");
-		leftBar.getChildren().add(pane);
+		leftBar.getChildren().add(cardPane);
 		Image image = ui.loadImage("gameplay.jpg");
-		scaleRatio = ui.getPaneHeight()/(image.getHeight()/2);
+		boardI = new Pane();
+		scaleRatio = ui.getPaneHeight()*2 / image.getHeight();
 		board = new ImageView(image);
 		board.setPreserveRatio(true);
-		board.setFitHeight(ui.getPaneHeight()*2);
-		board.setOnMouseClicked(e -> mouseHandler.mouseClicked(e));
-		board.setOnMousePressed(e -> {
+		board.setFitHeight(ui.getPaneHeight() * 2);
+		boardI.setMinHeight(ui.getPaneHeight() * 2);
+		boardI.setMinWidth(ui.getPaneWidth()/scaleRatio);
+		System.out.println("Image : " + board.getBoundsInParent().getHeight() + " " + board.getBoundsInParent().getWidth());
+		System.out.println("Pane : " + boardI.getHeight() + " " + boardI.getWidth());
+		boardPane = new Pane();
+		boardI.setOnMouseClicked(e -> mouseHandler.mouseClicked(e));
+		boardI.setOnMousePressed(e -> {
 			mouseHandler.mousePressed(e);
 		});
-		board.setOnMouseDragged(e -> {
+		boardI.setOnMouseDragged(e -> {
 			mouseHandler.mouseDragged(e);
 		});
-		Pane boardPane = new Pane();
-		boardPane.getChildren().addAll(board);
+		boardI.getChildren().addAll(board);
+		boardPane.getChildren().addAll(boardI);
 		gameScreen.setCenter(boardPane);
-		pane.setPadding(marginlessInsets);
+		cardPane.setPadding(marginlessInsets);
 		System.out.print(boardPane.getWidth());
 		Label turn = new Label("Player 1 Turn");
 		turn.setStyle("-fx-font-size: 40px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
@@ -127,7 +128,6 @@ public class JTEGameScreen {
 		iconView.setFitHeight(50);
 		HBox playerTurn = new HBox();
 		playerTurn.getChildren().addAll(turn, iconView);
-
 
 		int val = rollDie();
 		Label roll = new Label("Rolled " + val);
@@ -163,8 +163,9 @@ public class JTEGameScreen {
 		rightPane.getChildren().addAll(playerTurn, roll, rolImage, nav, about, history);
 		gameScreen.setRight(rightPane);
 		gameScreen.setLeft(leftBar);
+		initPlayerPositions();
 		mainPane.getChildren().addAll(gameScreen);
-		selectedQuad = 1;
+
 	}
 
 	public void topLeft() {
@@ -234,7 +235,7 @@ public class JTEGameScreen {
 		double scaledx = x/scaleRatio;
 		double scaledy = y/scaleRatio;
 		try {
-			City clicked = gameData.getCity(scaledx, scaledy, selectedQuad);
+			City clicked = gameData.getCity(scaledx, scaledy);
 			System.out.printf("Name : %s\nX Coord : %.2f\nY Coord : %.2f", clicked.getName(), clicked.getX() * scaleRatio, clicked.getY() * scaleRatio);
 			ui.getFileLoader().addToHistory(clicked.getName());
 			ui.getErrorHandler().processError(clicked.getName(), ui.getPrimaryStage());
@@ -252,4 +253,44 @@ public class JTEGameScreen {
 		return board;
 	}
 
+	public Pane getBoardI() {
+		return boardI;
+	}
+
+	public void switchCards(int playerPos) {
+		JTEUI ui = JTEUI.getUI();
+		cardPane.getChildren().removeAll();
+		for(int i=0;i<player.get(playerPos).getHand().size();i++) {
+			DropShadow ds1 = new DropShadow();
+			ds1.setOffsetY(-2.0f);
+			ds1.setOffsetX(4.0f);
+			ds1.setColor(Color.GREY);
+			Image image = ui.loadImage(player.get(playerPos).getHand().get(i).toString());
+			ImageView imageView = new ImageView(image);
+			imageView.setPreserveRatio(true);
+			imageView.setX(5);
+			imageView.setFitWidth(ui.getPaneWidth() * 0.19);
+			imageView.setY(5+(i*ui.getPaneHeight()*0.10));
+			cardPane.getChildren().add(imageView);
+			imageView.setEffect(ds1);
+		}
+	}
+
+	void initPlayerPositions() {
+		JTEUI ui = JTEUI.getUI();
+		for(int i=0;i<humans+ai;i++) {
+			System.out.println(player.get(i).getHome() + " " + player.get(i).getHome().getActualx() * scaleRatio + " " + player.get(i).getHome().getActualy() * scaleRatio);
+			boardI.getChildren().add(playerImages.get(i));
+			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio);
+			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio);
+			playerImages.get(i).setPreserveRatio(true);
+			DropShadow ds1 = new DropShadow();
+			ds1.setOffsetY(-2.0f);
+			ds1.setOffsetX(4.0f);
+			ds1.setColor(Color.GREY);
+			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
+			playerImages.get(i).setEffect(ds1);
+
+		}
+	}
 }

@@ -8,6 +8,8 @@ public class City {
 	String color;
 	int x;
 	int y;
+	int actualx;
+	int actualy;
 
 	public String getName() {
 		return name;
@@ -39,6 +41,32 @@ public class City {
 		this.x = x;
 		this.y = y;
 		this.quad = quad;
+		if(quad == 1) {
+			actualx = x;
+			actualy = y;
+		}
+		else if(quad == 2) {
+			actualx = x + 2000;
+			actualy = y;
+		}
+
+		else if(quad == 3) {
+			actualx = x;
+			actualy = y + 2559;
+		}
+
+		else if(quad == 4) {
+			actualx = x + 1980;
+			actualy = y + 2559;
+		}
+	}
+
+	public int getActualy() {
+		return actualy;
+	}
+
+	public int getActualx() {
+		return actualx;
 	}
 
 	public String toString() {

@@ -30,10 +30,10 @@ public class JTEEventHandler {
     /**
      * This method responds to when the user presses the new game method.
      */
-    public void respondToNewGameRequest() {
+    public void respondToNewGameRequest(int players, int ai) {
         JTEUI ui = JTEUI.getUI();
         JTEGameStateManager gsm = ui.getGSM();
-        gsm.startNewGame();
+        gsm.startNewGame(players, ai);
     }
 
     /**

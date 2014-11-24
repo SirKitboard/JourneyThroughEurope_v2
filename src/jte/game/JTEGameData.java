@@ -1,5 +1,6 @@
 package jte.game;
 
+import com.sun.media.jfxmedia.events.PlayerEvent;
 import jte.file.JTEFileLoader;
 import jte.ui.JTEUI;
 
@@ -19,22 +20,26 @@ public class JTEGameData {
 	ArrayList<City> deck;
 	JTEUI ui;
 	JTEFileLoader fileLoader;
-    Player player;
+    ArrayList<Player> player;
 
 
 	/*
      * Construct this object when a jte.game begins.
      */
-    public JTEGameData(JTEUI ui) {
-		this.ui = ui;
+    public JTEGameData(int players, int ai) {
+		this.ui = JTEUI.getUI();
 	    fileLoader = ui.getFileLoader();
 	    createCityData();
 	    createCityNameList();
 	    createDeck();
-	    player = new Player(deck);
+	    player = new ArrayList<Player>();
+		for(int i=0;i<players+ai;i++) {
+			player.add(new Player(deck));
+		}
+
     }
 
-	public Player getPlayer() {
+	public ArrayList<Player> getPlayer() {
 		return player;
 	}
 
@@ -62,13 +67,12 @@ public class JTEGameData {
 		Collections.shuffle(deck);
 	}
 
-	public City getCity(double x, double y, int quad) throws CityNotFoundException{
+	public City getCity(double x, double y) throws CityNotFoundException{
 		for(int i=0;i<cityNames.size();i++) {
 			City temp = cityData.get(cityNames.get(i));
-			if(temp.getQuad() == quad) {
-				if (Math.sqrt(Math.pow((x - temp.getX()), 2) + Math.pow(y - temp.getY(), 2)) < 15) {
-					return temp;
-				}
+			if (Math.sqrt(Math.pow((x - temp.getActualx()), 2) + Math.pow(y - temp.getActualy(), 2)) < 15) {
+				return temp;
+
 			}
 		}
 		throw new CityNotFoundException();

@@ -10,6 +10,11 @@ public class Player {
 	String flagColor;
 	City position;
 	City home;
+
+	public City getHome() {
+		return home;
+	}
+
 	Player (ArrayList<City> cityList){
 		hand = new ArrayList<City>();
 		for(int i=0;i<7;i++) {

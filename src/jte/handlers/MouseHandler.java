@@ -23,13 +23,13 @@ public class MouseHandler {
 		if(me.getX() - distx > 0);
 		else if(me.getX() - distx <  (ui.getPaneWidth()*0.6) - ui.getJteGameScreen().getBoard().getBoundsInParent().getWidth());
 		else {
-			ui.getJteGameScreen().getBoard().setLayoutX(me.getX() - distx);
+			ui.getJteGameScreen().getBoardI().setLayoutX(me.getX() - distx);
 		}
 
 		if(me.getY() - disty > 0);
 		else if(me.getY() - disty <  (ui.getPaneHeight()) - ui.getJteGameScreen().getBoard().getBoundsInParent().getHeight());
 		else {
-			ui.getJteGameScreen().getBoard().setLayoutY(me.getY() - disty);
+			ui.getJteGameScreen().getBoardI().setLayoutY(me.getY() - disty);
 		}
 
 
@@ -38,7 +38,7 @@ public class MouseHandler {
 		JTEUI ui = JTEUI.getUI();
 		temp1 = me.getX();
 		temp2 = me.getY();
-		distx = temp1 - ui.getJteGameScreen().getBoard().getLayoutX();
-		disty = temp2 - ui.getJteGameScreen().getBoard().getLayoutY();
+		distx = temp1 - ui.getJteGameScreen().getBoardI().getLayoutX();
+		disty = temp2 - ui.getJteGameScreen().getBoardI().getLayoutY();
 	}
 }

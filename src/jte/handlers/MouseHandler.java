@@ -23,13 +23,13 @@ public class MouseHandler {
 		else {
 			try {
 				double scaleRatio = ui.getJteGameScreen().getScaleRatio();
-				clicked = ui.getJteGameScreen().getGameData().getCity(temp1/scaleRatio, temp2/scaleRatio);
+				clicked = ui.getJteGameScreen().getGameData().getCity(me.getX()/scaleRatio, me.getY()/scaleRatio);
 				if(origin != null) {
 					if (clicked == origin)
 						ui.mapClicked(clicked);
-					else if (clicked.getLandConnections().indexOf(origin) != -1) {
+					else if (clicked.getLandConnections().contains(origin)) {
 						ui.getJteGameScreen().playerMoved(origin, clicked);
-					} else if (clicked.getSeaConnections().indexOf(origin) != -1) {
+					} else if (clicked.getSeaConnections().contains(origin)) {
 						ui.getJteGameScreen().playerMovedSea(origin, clicked);
 					}
 				}

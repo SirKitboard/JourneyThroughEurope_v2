@@ -172,8 +172,11 @@ public class JTEGameScreen {
 		about.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		Button history = new Button("Game history");
 		history.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		Button exit = new Button("Exit");
+		exit.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		about.setOnAction(e -> ui.switchPane(4));
 		history.setOnAction(e -> ui.switchPane(6));
+		exit.setOnAction(e-> ui.getEventHandler().respondToExitRequest(ui.getPrimaryStage()));
 		VBox rightPane = new VBox();
 		rightPane.setStyle("-fx-background-color: #D1B48C;");
 		rightPane.setSpacing(10);
@@ -182,7 +185,7 @@ public class JTEGameScreen {
 		rightPane.setAlignment(Pos.CENTER);
 		playerTurn.setAlignment(Pos.CENTER);
 		nav.setAlignment(Pos.CENTER);
-		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history);
+		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history,exit);
 		gameScreen.setRight(rightPane);
 		gameScreen.setLeft(leftBar);
 		initPlayerPositions();

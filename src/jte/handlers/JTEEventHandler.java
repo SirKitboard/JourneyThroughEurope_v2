@@ -21,13 +21,6 @@ public class JTEEventHandler {
     public JTEEventHandler(){}
 
     /**
-     * This method responds to when the user wishes to switch between the Game,
-     * Stats, and Help screens.
-     *
-     * @param uiState The ui state, or screen, that the user wishes to switch
-     * to.
-     */
-    /**
      * This method responds to when the user presses the new game method.
      */
     public void respondToNewGameRequest(int players, int ai) {
@@ -41,9 +34,6 @@ public class JTEEventHandler {
      *
      *
      */
-
-
-
     public void respondToExitRequest(Stage primaryStage) {
         // ENGLIS IS THE DEFAULT
         String options[] = new String[]{"Yes", "No"};

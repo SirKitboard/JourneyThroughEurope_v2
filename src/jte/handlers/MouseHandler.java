@@ -19,7 +19,6 @@ public class MouseHandler {
 	}
 	public void mouseDragged(MouseEvent me) {
 		JTEUI ui = JTEUI.getUI();
-		System.out.println(me.getX() - distx);
 		if(me.getX() - distx > 0);
 		else if(me.getX() - distx <  (ui.getPaneWidth()*0.6) - ui.getJteGameScreen().getBoard().getBoundsInParent().getWidth());
 		else {

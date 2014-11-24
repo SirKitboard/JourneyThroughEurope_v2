@@ -98,11 +98,11 @@ public class JTEGameScreen {
 		leftBar.getChildren().add(cardPane);
 		Image image = ui.loadImage("gameplay.jpg");
 		boardI = new Pane();
-		scaleRatio = ui.getPaneHeight()*2 / image.getHeight();
+		scaleRatio = ui.getPaneHeight()*3 / image.getHeight();
 		board = new ImageView(image);
 		board.setPreserveRatio(true);
-		board.setFitHeight(ui.getPaneHeight() * 2);
-		boardI.setMinHeight(ui.getPaneHeight() * 2);
+		board.setFitHeight(ui.getPaneHeight() * 3);
+		boardI.setMinHeight(ui.getPaneHeight() * 3);
 		boardI.setMinWidth(ui.getPaneWidth()/scaleRatio);
 		System.out.println("Image : " + board.getBoundsInParent().getHeight() + " " + board.getBoundsInParent().getWidth());
 		System.out.println("Pane : " + boardI.getHeight() + " " + boardI.getWidth());
@@ -279,16 +279,17 @@ public class JTEGameScreen {
 	void initPlayerPositions() {
 		JTEUI ui = JTEUI.getUI();
 		for(int i=0;i<humans+ai;i++) {
+			playerImages.get(i).setPreserveRatio(true);
+			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
 			System.out.println(player.get(i).getHome() + " " + player.get(i).getHome().getActualx() * scaleRatio + " " + player.get(i).getHome().getActualy() * scaleRatio);
 			boardI.getChildren().add(playerImages.get(i));
-			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio);
-			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio);
-			playerImages.get(i).setPreserveRatio(true);
+			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio - 10);
+			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio - 50);
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);
-			ds1.setColor(Color.GREY);
-			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
+			ds1.setColor(Color.BLACK);
+
 			playerImages.get(i).setEffect(ds1);
 
 		}

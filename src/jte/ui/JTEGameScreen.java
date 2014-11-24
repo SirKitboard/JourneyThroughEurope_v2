@@ -267,7 +267,7 @@ public class JTEGameScreen {
 		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
 		try {
 			City origin = gameData.getCity(scaledxO, scaledyO);
-			ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
+			//ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
 			if(origin.getLandConnections().contains(clicked)) {
 				playerMoved(origin, clicked);
 			}

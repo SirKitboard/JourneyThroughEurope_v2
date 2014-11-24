@@ -2,3 +2,7 @@
 *.iml
 *.iws
 videos
+/build/
+build.xml
+manifest.mf
+nbproject

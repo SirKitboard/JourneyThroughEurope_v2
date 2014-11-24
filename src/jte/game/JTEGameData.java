@@ -72,7 +72,6 @@ public class JTEGameData {
 			City temp = cityData.get(cityNames.get(i));
 			if (Math.sqrt(Math.pow((x - temp.getActualx()), 2) + Math.pow(y - temp.getActualy(), 2)) < 20) {
 				return temp;
-
 			}
 		}
 		throw new CityNotFoundException();

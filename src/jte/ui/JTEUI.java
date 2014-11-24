@@ -6,6 +6,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import jte.file.JTEFileLoader;
+import jte.game.City;
 import jte.game.JTEGameStateManager;
 import properties_manager.PropertiesManager;
 import jte.handlers.*;
@@ -191,7 +192,7 @@ public class JTEUI extends Pane {
 	}
 
 
-	public void mapClicked(MouseEvent me) {
+	public void mapClicked(City me) {
 		jteGameScreen.mapClicked(me);
 	}
 

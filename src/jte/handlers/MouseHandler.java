@@ -26,9 +26,11 @@ public class MouseHandler {
 				clicked = ui.getJteGameScreen().getGameData().getCity(temp1/scaleRatio, temp2/scaleRatio);
 				if(origin != null) {
 					if (clicked == origin)
-						ui.mapClicked(me);
+						ui.mapClicked(clicked);
 					else if (clicked.getLandConnections().indexOf(origin) != -1) {
 						ui.getJteGameScreen().playerMoved(origin, clicked);
+					} else if (clicked.getSeaConnections().indexOf(origin) != -1) {
+						ui.getJteGameScreen().playerMovedSea(origin, clicked);
 					}
 				}
 				dragEnabled = false;

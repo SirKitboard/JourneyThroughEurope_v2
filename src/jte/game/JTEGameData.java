@@ -26,7 +26,7 @@ public class JTEGameData {
 	/*
      * Construct this object when a jte.game begins.
      */
-    public JTEGameData(int players, int ai) {
+    public JTEGameData(int players, int ai,int numCards) {
 		this.ui = JTEUI.getUI();
 	    fileLoader = ui.getFileLoader();
 	    createCityData();
@@ -34,7 +34,7 @@ public class JTEGameData {
 	    createDeck();
 	    player = new ArrayList<Player>();
 		for(int i=0;i<players+ai;i++) {
-			player.add(new Player(deck));
+			player.add(new Player(deck, i, numCards));
 		}
 
     }

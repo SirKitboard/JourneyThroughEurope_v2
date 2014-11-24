@@ -172,7 +172,7 @@ public class JTEUI extends Pane {
 		return paneHeight;
 	}
 
-	public void startGame(int no) {
+	public void startGame(int no, int numCards) {
 		int humans=0;
 		int ai=0;
 		for(int i=0;i<no;i++) {
@@ -184,7 +184,7 @@ public class JTEUI extends Pane {
 			}
 		}
 		ArrayList<String> names = playerSelectScreen.getNames(humans+ai);
-		eventHandler.respondToNewGameRequest(humans, ai);
+		eventHandler.respondToNewGameRequest(humans, ai, numCards);
 		jteGameScreen = new JTEGameScreen(humans,ai,names);
 		switchPane(5);
 		historyScreen = new JTEHistoryScreen();

@@ -159,7 +159,7 @@ public class JTEGameStateManager {
      * games history data structure. It also lets the user interface know about
      * this change of state such that it may reflect this change.
      */
-    public void startNewGame(int players, int ai) {
+    public void startNewGame(int players, int ai,int numCards) {
         // IS THERE A GAME ALREADY UNDERWAY?
         // YES, SO END THAT GAME AS A LOSS
         if (!isGameNotStarted() && (!gamesHistory.contains(gameInProgress))) {
@@ -173,7 +173,7 @@ public class JTEGameStateManager {
         // CHOOSE TO PLAY AGAIN
 
         // AND NOW MAKE A NEW GAME
-        makeNewGame(players, ai);
+        makeNewGame(players, ai,numCards);
 
         // AND MAKE SURE THE UI REFLECTS A NEW GAME
         //ui.resetUI();
@@ -183,9 +183,9 @@ public class JTEGameStateManager {
      * This method chooses a secret word and uses it to create a new jte.game,
      * effectively starting it.
      */
-    public void makeNewGame(int players, int ai) {
+    public void makeNewGame(int players, int ai,int numCards) {
         // TODO: create a jte.game for a level
-        gameInProgress = new JTEGameData(players,ai);
+        gameInProgress = new JTEGameData(players,ai,numCards);
 
         // THE GAME IS OFFICIALLY UNDERWAY
         currentGameState = JTEGameState.GAME_IN_PROGRESS;

@@ -51,8 +51,15 @@ public class JTEGameScreen {
 	Pane boardI;
 	int counter;
 	int activePlayer;
+	int rolled;
+	int movesLeft;
 	ArrayList<Line> lines;
 	ArrayList<Circle> circles;
+	ComboBox<String> label;
+	Label roll;
+	ImageView rolImage;
+	Label turn;
+	Label left;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -95,8 +102,9 @@ public class JTEGameScreen {
 		mainPane.getChildren().clear();
 		BorderPane gameScreen = new BorderPane();
 		VBox leftBar = new VBox();
-		final ComboBox<String> label = new ComboBox<String>();
+		label = new ComboBox<String>();
 		label.getItems().addAll(names);
+		label.setDisable(true);
 		label.setValue(names.get(0));
 		label.setMinWidth(ui.getPaneWidth() * 0.20);
 		label.setMinHeight(30);
@@ -131,7 +139,7 @@ public class JTEGameScreen {
 		gameScreen.setCenter(boardPane);
 		cardPane.setPadding(marginlessInsets);
 		System.out.print(boardPane.getWidth());
-		Label turn = new Label("Player 1 Turn");
+		turn = new Label(names.get(activePlayer) + " Turn");
 		turn.setStyle("-fx-font-size: 40px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
 		Image icon = ui.loadImage("piece_red.png");
 		boardPane.setMinWidth(ui.getPaneWidth() * 0.60);
@@ -140,12 +148,14 @@ public class JTEGameScreen {
 		iconView.setFitHeight(50);
 		HBox playerTurn = new HBox();
 		playerTurn.getChildren().addAll(turn, iconView);
-
-		int val = rollDie();
-		Label roll = new Label("Rolled " + val);
+		rolled = rollDie();
+		movesLeft = rolled;
+		roll = new Label("Rolled " + rolled);
+		left = new Label("Moves Left : " + movesLeft);
 		roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
-		image = ui.loadImage("die_"+val+".jpg");
-		ImageView rolImage = new ImageView(image);
+		left.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		image = ui.loadImage("die_"+rolled+".jpg");
+		rolImage = new ImageView(image);
 		rolImage.setPreserveRatio(true);
 		rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
 		GridPane nav = new GridPane();
@@ -172,7 +182,7 @@ public class JTEGameScreen {
 		rightPane.setAlignment(Pos.CENTER);
 		playerTurn.setAlignment(Pos.CENTER);
 		nav.setAlignment(Pos.CENTER);
-		rightPane.getChildren().addAll(playerTurn, roll, rolImage, nav, about, history);
+		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history);
 		gameScreen.setRight(rightPane);
 		gameScreen.setLeft(leftBar);
 		initPlayerPositions();
@@ -285,7 +295,7 @@ public class JTEGameScreen {
 			imageView.setFitWidth(ui.getPaneWidth() * 0.19);
 			cardPane.getChildren().add(imageView);
 			imageView.setEffect(ds1);
-			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300),imageView);
+			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(700),imageView);
 			translateTransition.setFromX(ui.getPaneWidth()/2);
 			translateTransition.setFromY(ui.getPaneHeight() / 2);
 			translateTransition.setToX(5);
@@ -382,23 +392,77 @@ public class JTEGameScreen {
 	public void playerMoved(City origin, City clicked) {
 		JTEUI ui = JTEUI.getUI();
 		if(origin.getLandConnections().contains(clicked)) {
-			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+			TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
 			translateTransition.setByX((clicked.getActualx() - origin.getActualx()) * scaleRatio);
 			translateTransition.setByY((clicked.getActualy() - origin.getActualy()) * scaleRatio);
 			translateTransition.play();
 			translateTransition.setOnFinished(e -> {
 				translateTransition.stop();
-				TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1),playerImages.get(activePlayer));
+				TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1), playerImages.get(activePlayer));
 				translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
 				translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
 				translateTransition1.play();
 				playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
 				playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
 				drawLines(clicked);
+				movesLeft--;
+				left.setText("Moves left : " + movesLeft);
+				double scaledxO = (playerImages.get(activePlayer).getLayoutX() + 10) / scaleRatio;
+				double scaledyO = (playerImages.get(activePlayer).getLayoutY() + 50) / scaleRatio;
+				try {
+					City city = gameData.getCity(scaledxO, scaledyO);
+					for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
+						if (city == player.get(activePlayer).getHand().get(i)) {
+							if(player.get(activePlayer).getHome() == city) {
+								if(player.get(activePlayer).getHand().size() <=1 ){
+									ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage());
+								}
+							}
+							else {
+								player.get(activePlayer).getHand().remove(i);
+								endTurn();
+							}
+						}
+					}
+				} catch (CityNotFoundException e1) {
+					e1.printStackTrace();
+				}
+
+				if (movesLeft == 0 && rolled == 6) {
+					rolled = rollDie();
+					movesLeft = rolled;
+					turn.setText(names.get(activePlayer) + " Turn");
+					left.setText("Moves left : " + movesLeft);
+					roll.setText("Rolled " + rolled);
+					roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+					Image image = ui.loadImage("die_"+rolled+".jpg");
+					rolImage.setImage(image);
+					rolImage.setPreserveRatio(true);
+					rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
+				} else if (movesLeft == 0) {
+					endTurn();
+				}
 			});
 		}
-
 		ui.getFileLoader().addToHistory(clicked.getName());
 		ui.getHistoryScreen().refreshHistory();
+	}
+
+	public void endTurn() {
+		JTEUI ui = JTEUI.getUI();
+		activePlayer++;
+		activePlayer%=(humans+ai);
+		switchCards(activePlayer);
+		label.setValue(names.get(activePlayer));
+		rolled = rollDie();
+		movesLeft = rolled;
+		turn.setText(names.get(activePlayer) + " Turn");
+		left.setText("Moves left : " + movesLeft);
+		roll.setText("Rolled " + rolled);
+		roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		Image image = ui.loadImage("die_"+rolled+".jpg");
+		rolImage.setImage(image);
+		rolImage.setPreserveRatio(true);
+		rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
 	}
 }

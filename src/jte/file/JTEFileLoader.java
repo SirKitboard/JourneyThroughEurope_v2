@@ -76,7 +76,7 @@ public class JTEFileLoader {
 			while(cities.hasNext()) {
 				String value = cities.nextLine();
 				String[] array = value.split(",");
-				City city = new City(array[0].trim(),array[1],Integer.parseInt(array[2]),Integer.parseInt(array[3]),Integer.parseInt(array[4]));
+				City city = new City(array[0].trim(),array[1],Integer.parseInt(array[2]),Integer.parseInt(array[3]),Integer.parseInt(array[4]),Integer.parseInt(array[7]));
 				data.put(array[0],city);
 			}
 

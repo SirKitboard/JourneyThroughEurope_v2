@@ -60,6 +60,7 @@ public class JTEGameScreen {
 	ImageView rolImage;
 	Label turn;
 	Label left;
+	boolean airDisplay;
 	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
 		JTEUI ui = JTEUI.getUI();
 		this.names = names;
@@ -174,9 +175,21 @@ public class JTEGameScreen {
 		history.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		Button exit = new Button("Exit");
 		exit.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		Button airMap = new Button("Flight Plan");
+		airMap.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		about.setOnAction(e -> ui.switchPane(4));
 		history.setOnAction(e -> ui.switchPane(6));
 		exit.setOnAction(e-> ui.getEventHandler().respondToExitRequest(ui.getPrimaryStage()));
+		airMap.setOnAction(e -> {
+			if(airDisplay) {
+				board.setImage(ui.loadImage("gameplay.jpg"));
+				airDisplay = false;
+			}
+			else {
+				board.setImage(ui.loadImage("flightplan2.jpg"));
+				airDisplay = true;
+			}
+		});
 		VBox rightPane = new VBox();
 		rightPane.setStyle("-fx-background-color: #D1B48C;");
 		rightPane.setSpacing(10);
@@ -185,7 +198,7 @@ public class JTEGameScreen {
 		rightPane.setAlignment(Pos.CENTER);
 		playerTurn.setAlignment(Pos.CENTER);
 		nav.setAlignment(Pos.CENTER);
-		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history,exit);
+		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history,exit,airMap);
 		gameScreen.setRight(rightPane);
 		gameScreen.setLeft(leftBar);
 		initPlayerPositions();
@@ -340,6 +353,7 @@ public class JTEGameScreen {
 			ds1.setOffsetX(4.0f);
 			ds1.setColor(Color.BLACK);
 			playerImages.get(i).setEffect(ds1);
+			player.get(i).setPosition(player.get(i).getHome());
 		}
 		drawLines(player.get(0).getHome());
 	}
@@ -415,48 +429,61 @@ public class JTEGameScreen {
 			translateTransition1.play();
 			playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
 			playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
-			drawLines(clicked);
-			movesLeft--;
-			left.setText("Moves left : " + movesLeft);
-			double scaledxO = (playerImages.get(activePlayer).getLayoutX() + 10) / scaleRatio;
-			double scaledyO = (playerImages.get(activePlayer).getLayoutY() + 50) / scaleRatio;
-			try {
-				City city = gameData.getCity(scaledxO, scaledyO);
-				for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
-					if (city == player.get(activePlayer).getHand().get(i)) {
-						if(player.get(activePlayer).getHome() == city) {
-							if(player.get(activePlayer).getHand().size() <=1 ){
-								ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage());
-							}
-						}
-						else {
-							player.get(activePlayer).getHand().remove(i);
-							endTurn();
-						}
-					}
-				}
-			} catch (CityNotFoundException e1) {
-				e1.printStackTrace();
-			}
-
-			if (movesLeft <= 0 && rolled == 6) {
-				rolled = rollDie();
-				movesLeft = rolled;
-				turn.setText(names.get(activePlayer) + " Turn");
-				left.setText("Moves left : " + movesLeft);
-				roll.setText("Rolled " + rolled);
-				roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
-				Image image = ui.loadImage("die_"+rolled+".jpg");
-				rolImage.setImage(image);
-				rolImage.setPreserveRatio(true);
-				rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
-			} else if (movesLeft <= 0) {
-				endTurn();
-			}
+			player.get(activePlayer).setPosition(clicked);
+			performChecks(clicked);
 		});
 
 		ui.getFileLoader().addToHistory(clicked.getName());
 		ui.getHistoryScreen().refreshHistory();
+	}
+
+	public void moveNoAnimate(double x, double y, City origin, City clicked) {
+		playerImages.get(activePlayer).setLayoutX(x + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+		playerImages.get(activePlayer).setLayoutY(y + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+		player.get(activePlayer).setPosition(clicked);
+		performChecks(clicked);
+	}
+
+	public void performChecks(City clicked) {
+		JTEUI ui = JTEUI.getUI();
+		drawLines(clicked);
+		movesLeft--;
+		left.setText("Moves left : " + movesLeft);
+		double scaledxO = (playerImages.get(activePlayer).getLayoutX() + 10) / scaleRatio;
+		double scaledyO = (playerImages.get(activePlayer).getLayoutY() + 50) / scaleRatio;
+		try {
+			City city = gameData.getCity(scaledxO, scaledyO);
+			for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
+				if (city == player.get(activePlayer).getHand().get(i)) {
+					if(player.get(activePlayer).getHome() == city) {
+						if(player.get(activePlayer).getHand().size() <=1 ){
+							ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage());
+						}
+					}
+					else {
+						player.get(activePlayer).getHand().remove(i);
+						endTurn();
+					}
+				}
+			}
+		} catch (CityNotFoundException e1) {
+			e1.printStackTrace();
+		}
+
+		if (movesLeft <= 0 && rolled == 6) {
+			rolled = rollDie();
+			movesLeft = rolled;
+			turn.setText(names.get(activePlayer) + " Turn");
+			left.setText("Moves left : " + movesLeft);
+			roll.setText("Rolled " + rolled);
+			roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+			Image image = ui.loadImage("die_"+rolled+".jpg");
+			rolImage.setImage(image);
+			rolImage.setPreserveRatio(true);
+			rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
+		} else if (movesLeft <= 0) {
+			endTurn();
+		}
 	}
 
 	public void playerMovedSea(City origin, City clicked) {
@@ -464,8 +491,12 @@ public class JTEGameScreen {
 			movesLeft = 0;
 			playerMoved(origin, clicked);
 		}
-		else {
-			return;
+	}
+
+	public void movedSeaNoAnimate(double x, double y, City origin, City clicked) {
+		if(movesLeft == rolled) {
+			movesLeft = 0;
+			moveNoAnimate(x,y,origin,clicked);
 		}
 	}
 
@@ -485,5 +516,18 @@ public class JTEGameScreen {
 		rolImage.setImage(image);
 		rolImage.setPreserveRatio(true);
 		rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
+	}
+
+	public ImageView getActivePlayerImage() {
+		return playerImages.get(activePlayer);
+	}
+
+	public Player getActive() {
+		return player.get(activePlayer);
+	}
+
+	public void setPlayerPosition(double x, double y) {
+		playerImages.get(activePlayer).setLayoutX(x);
+		playerImages.get(activePlayer).setLayoutY(y);
 	}
 }

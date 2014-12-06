@@ -46,4 +46,13 @@ public class Player {
 	public ArrayList<City> getHand() {
 		return hand;
 	}
+
+	public City getPosition() {
+		return position;
+	}
+
+	public void setPosition(City position) {
+
+		this.position = position;
+	}
 }

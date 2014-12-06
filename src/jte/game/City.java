@@ -12,6 +12,7 @@ public class City {
 	int y;
 	int actualx;
 	int actualy;
+	int airport;
 
 	ArrayList<City> landConnections;
 	ArrayList<City> seaConnections;
@@ -40,12 +41,13 @@ public class City {
 		return y;
 	}
 
-	public City(String name, String color, int quad, int x, int y ) {
+	public City(String name, String color, int quad, int x, int y, int airport) {
 		this.name = name;
 		this.color = color;
 		this.x = x;
 		this.y = y;
 		this.quad = quad;
+		this.airport = airport;
 		if(quad == 1) {
 			actualx = x;
 			actualy = y;

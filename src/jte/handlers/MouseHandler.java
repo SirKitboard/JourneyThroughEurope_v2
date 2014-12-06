@@ -1,5 +1,6 @@
 package jte.handlers;
 
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import jte.game.City;
 import jte.game.CityNotFoundException;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 public class MouseHandler {
 	ArrayList<MouseEvent> drag = new ArrayList<>();
 	boolean enabled;
-	double temp1, temp2, distx, disty;
+	double temp1, temp2, distx, disty, origx, origy;
 	boolean dragEnabled = true;
 	City origin, clicked;
 	public void mouseReleased(MouseEvent me) {
@@ -28,25 +29,26 @@ public class MouseHandler {
 					if (clicked == origin)
 						ui.mapClicked(clicked);
 					else if (clicked.getLandConnections().contains(origin)) {
-						ui.getJteGameScreen().playerMoved(origin, clicked);
+						ui.getJteGameScreen().moveNoAnimate(origx,origy,origin, clicked);
 					} else if (clicked.getSeaConnections().contains(origin)) {
-						ui.getJteGameScreen().playerMovedSea(origin, clicked);
+						ui.getJteGameScreen().movedSeaNoAnimate(origx,origy,origin, clicked);
 					}
 				}
 				dragEnabled = false;
 				origin = null;
 				clicked = null;
 			} catch (CityNotFoundException e) {
-				e.printStackTrace();
+				ui.getJteGameScreen().setPlayerPosition(origx,origy);
+
 				origin = null;
 				clicked=  null;
 			}
 		}
 	}
 	public void mouseDragged(MouseEvent me) {
+		JTEUI ui = JTEUI.getUI();
 		if(dragEnabled) {
-			JTEUI ui = JTEUI.getUI();
-			if (me.getX() - distx > 0) ;
+			if (me.getX() - distx > 0);
 			else if (me.getX() - distx < (ui.getPaneWidth() * 0.6) - ui.getJteGameScreen().getBoard().getBoundsInParent().getWidth());
 			else {
 				ui.getJteGameScreen().getBoardI().setLayoutX(me.getX() - distx);
@@ -59,6 +61,10 @@ public class MouseHandler {
 			}
 		}
 
+		else{
+			ui.getJteGameScreen().setPlayerPosition(me.getX(), me.getY());
+		}
+
 	}
 	public void mousePressed(MouseEvent me) {
 		JTEUI ui = JTEUI.getUI();
@@ -67,7 +73,17 @@ public class MouseHandler {
 			temp2 = me.getY();
 			double scaleRatio = ui.getJteGameScreen().getScaleRatio();
 			origin = ui.getJteGameScreen().getGameData().getCity(temp1/scaleRatio, temp2/scaleRatio);
-			dragEnabled = false;
+			if(origin.getName().equals(ui.getJteGameScreen().getActive().getPosition().getName())) {
+				dragEnabled = false;
+				ImageView player = ui.getJteGameScreen().getActivePlayerImage();
+				origx = player.getLayoutX();
+				origy = player.getLayoutY();
+			}
+			else {
+				dragEnabled = true;
+				distx = temp1 - ui.getJteGameScreen().getBoardI().getLayoutX();
+				disty = temp2 - ui.getJteGameScreen().getBoardI().getLayoutY();
+			}
 		} catch (CityNotFoundException e) {
 			dragEnabled = true;
 			distx = temp1 - ui.getJteGameScreen().getBoardI().getLayoutX();

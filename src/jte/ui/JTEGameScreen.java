@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -44,7 +45,6 @@ public class JTEGameScreen {
 	Insets marginlessInsets;
 	MouseHandler mouseHandler;
 	double scaleRatio;
-	ArrayList<String> names;
 	Pane cardPane;
 	ArrayList<ImageView> playerImages;
 	Pane boardPane;
@@ -61,9 +61,9 @@ public class JTEGameScreen {
 	Label turn;
 	Label left;
 	boolean airDisplay;
-	public JTEGameScreen(int humans, int ai,ArrayList<String> names) {
+	BorderPane gameScreen;
+	public JTEGameScreen(int humans, int ai) {
 		JTEUI ui = JTEUI.getUI();
-		this.names = names;
 		mainPane = new BorderPane();
 		this.humans = humans;
 		this.ai = ai;
@@ -80,10 +80,10 @@ public class JTEGameScreen {
 		b2.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		b3.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		b4.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
-		b1.setMinWidth(100);b1.setMaxHeight(100);b1.setMaxWidth(100);b1.setMinHeight(100);
-		b2.setMinWidth(100);b2.setMaxHeight(100);b2.setMaxWidth(100);b2.setMinHeight(100);
-		b3.setMinWidth(100);b3.setMaxHeight(100);b3.setMaxWidth(100);b3.setMinHeight(100);
-		b4.setMinWidth(100);b4.setMaxHeight(100);b4.setMaxWidth(100);b4.setMinHeight(100);
+		b1.setMinWidth(ui.getPaneWidth()*0.05);b1.setMaxHeight(ui.getPaneWidth()*0.05);b1.setMaxWidth(ui.getPaneWidth()*0.05);b1.setMinHeight(ui.getPaneWidth()*0.05);
+		b2.setMinWidth(ui.getPaneWidth()*0.05);b2.setMaxHeight(ui.getPaneWidth()*0.05);b2.setMaxWidth(ui.getPaneWidth()*0.05);b2.setMinHeight(ui.getPaneWidth()*0.05);
+		b3.setMinWidth(ui.getPaneWidth()*0.05);b3.setMaxHeight(ui.getPaneWidth()*0.05);b3.setMaxWidth(ui.getPaneWidth()*0.05);b3.setMinHeight(ui.getPaneWidth()*0.05);
+		b4.setMinWidth(ui.getPaneWidth()*0.05);b4.setMaxHeight(ui.getPaneWidth()*0.05);b4.setMaxWidth(ui.getPaneWidth()*0.05);b4.setMinHeight(ui.getPaneWidth()*0.05);
 		b1.setOnAction(e -> topLeft());
 		b2.setOnAction(e -> topRight());
 		b3.setOnAction(e -> bottomLeft());
@@ -95,24 +95,62 @@ public class JTEGameScreen {
 		playerImages.add(new ImageView(ui.loadImage("piece_red.png")));
 		playerImages.add(new ImageView(ui.loadImage("piece_white.png")));
 		playerImages.add(new ImageView(ui.loadImage("piece_yellow.png")));
-		initGameScreen();
+		initGameScreen(0);
 	}
-	public void initGameScreen() {
+
+	public JTEGameScreen(int humans, int ai, JTEGameData data,int activePlayer) {
+		JTEUI ui = JTEUI.getUI();
+		mainPane = new BorderPane();
+		this.humans = humans;
+		this.ai = ai;
+		gameData = data;
+		player =gameData.getPlayer();
+		mouseHandler = new MouseHandler();
+		lines = new ArrayList<>();
+		circles = new ArrayList<>();
+		b1 = new Button();
+		b2 = new Button();
+		b3 = new Button();
+		b4 = new Button();
+		b1.setStyle("-fx-background-color: #666666;-fx-border-width:2px;-fx-border-color:  #FF0000");
+		b2.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
+		b3.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
+		b4.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
+		b1.setMinWidth(ui.getPaneWidth()*0.05);b1.setMaxHeight(ui.getPaneWidth()*0.05);b1.setMaxWidth(ui.getPaneWidth()*0.05);b1.setMinHeight(ui.getPaneWidth()*0.05);
+		b2.setMinWidth(ui.getPaneWidth()*0.05);b2.setMaxHeight(ui.getPaneWidth()*0.05);b2.setMaxWidth(ui.getPaneWidth()*0.05);b2.setMinHeight(ui.getPaneWidth()*0.05);
+		b3.setMinWidth(ui.getPaneWidth()*0.05);b3.setMaxHeight(ui.getPaneWidth()*0.05);b3.setMaxWidth(ui.getPaneWidth()*0.05);b3.setMinHeight(ui.getPaneWidth()*0.05);
+		b4.setMinWidth(ui.getPaneWidth()*0.05);b4.setMaxHeight(ui.getPaneWidth()*0.05);b4.setMaxWidth(ui.getPaneWidth()*0.05);b4.setMinHeight(ui.getPaneWidth()*0.05);
+		b1.setOnAction(e -> topLeft());
+		b2.setOnAction(e -> topRight());
+		b3.setOnAction(e -> bottomLeft());
+		b4.setOnAction(e -> bottomRight());
+		playerImages = new ArrayList<>();
+		playerImages.add(new ImageView(ui.loadImage("piece_black.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_blue.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_green.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_red.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_white.png")));
+		playerImages.add(new ImageView(ui.loadImage("piece_yellow.png")));
+		initGameScreen(activePlayer);
+	}
+
+	public void initGameScreen(int activePlayer) {
 		JTEUI ui = JTEUI.getUI();
 		marginlessInsets = new Insets(5, 5, 5, 5);
 		mainPane.getChildren().clear();
-		BorderPane gameScreen = new BorderPane();
+		gameScreen = new BorderPane();
 		VBox leftBar = new VBox();
 		label = new ComboBox<String>();
-		label.getItems().addAll(names);
+		for(int i=0;i<humans+ai;i++) {
+			label.getItems().addAll(player.get(i).getName());
+		}
 		label.setDisable(true);
-		label.setValue(names.get(0));
+		label.setValue(player.get(activePlayer).getName());
 		label.setMinWidth(ui.getPaneWidth() * 0.20);
 		label.setMinHeight(30);
 		leftBar.getChildren().add(label);
 		cardPane = new Pane();
 		cardPane.setMinWidth(ui.getPaneWidth() * 0.20);
-		label.valueProperty().addListener(e -> switchCards(names.indexOf(label.getValue())));
 		leftBar.setStyle("-fx-background-color: #D1B48C;");
 		leftBar.getChildren().add(cardPane);
 		Image image = ui.loadImage("gameplay.jpg");
@@ -140,46 +178,49 @@ public class JTEGameScreen {
 		gameScreen.setCenter(boardPane);
 		cardPane.setPadding(marginlessInsets);
 		System.out.print(boardPane.getWidth());
-		turn = new Label(names.get(activePlayer) + " Turn");
-		turn.setStyle("-fx-font-size: 40px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		turn = new Label(player.get(activePlayer).getName() + " Turn");
+		turn.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0370+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
 		Image icon = ui.loadImage("piece_red.png");
 		boardPane.setMinWidth(ui.getPaneWidth() * 0.60);
 		ImageView iconView = new ImageView(icon);
 		iconView.setPreserveRatio(true);
-		iconView.setFitHeight(50);
+		iconView.setFitHeight(ui.getPaneHeight()*0.0462);
 		HBox playerTurn = new HBox();
 		playerTurn.getChildren().addAll(turn, iconView);
 		rolled = rollDie();
 		movesLeft = rolled;
 		roll = new Label("Rolled " + rolled);
 		left = new Label("Moves Left : " + movesLeft);
-		roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
-		left.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		roll.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		left.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
 		image = ui.loadImage("die_"+rolled+".jpg");
 		rolImage = new ImageView(image);
 		rolImage.setPreserveRatio(true);
 		rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
 		GridPane nav = new GridPane();
 		Pane padder = new Pane();
-		Label ac = new Label("A-C");ac.setStyle("-fx-font-size: 20px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
-		Label df = new Label("D-F");df.setStyle("-fx-font-size: 20px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
-		Label p14 = new Label("1-4");p14.setStyle("-fx-font-size: 20px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
-		Label p48 = new Label("5-8");p48.setStyle("-fx-font-size: 20px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
+		Label ac = new Label("A-C");ac.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.01851+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
+		Label df = new Label("D-F");df.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.01851+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
+		Label p14 = new Label("1-4");p14.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.01851+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
+		Label p48 = new Label("5-8");p48.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.01851+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#000000");
 
 		nav.add(padder,0,0);nav.add(ac,1,0);nav.add(df,2,0);
 		nav.add(p14,0,1);nav.add(b1,1,1);nav.add(b2,2,1);
 		nav.add(p48,0,2);nav.add(b3,1,2);nav.add(b4, 2, 2);
 		Button about = new Button("About");
-		about.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		about.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		Button history = new Button("Game history");
-		history.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		history.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		Button exit = new Button("Exit");
-		exit.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		exit.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		Button airMap = new Button("Flight Plan");
-		airMap.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		airMap.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
+		Button cityInfo = new Button("City Information");
+		cityInfo.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.0277+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill: #FF0000;-fx-background-color: #FFFFFF;-fx-border-color: #FF0000;-fx-border-radius: 3px;-fx-border-width: 5px");
 		about.setOnAction(e -> ui.switchPane(4));
 		history.setOnAction(e -> ui.switchPane(6));
-		exit.setOnAction(e-> ui.getEventHandler().respondToExitRequest(ui.getPrimaryStage()));
+		exit.setOnAction(e-> ui.getEventHandler().respondToSaveRequest(ui.getPrimaryStage()));
+		cityInfo.setOnAction(e -> displayInfo(player.get(activePlayer).getPosition()));
 		airMap.setOnAction(e -> {
 			if(airDisplay) {
 				board.setImage(ui.loadImage("gameplay.jpg"));
@@ -198,12 +239,12 @@ public class JTEGameScreen {
 		rightPane.setAlignment(Pos.CENTER);
 		playerTurn.setAlignment(Pos.CENTER);
 		nav.setAlignment(Pos.CENTER);
-		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history,exit,airMap);
+		rightPane.getChildren().addAll(playerTurn, roll, left,rolImage, nav, about, history,exit,airMap,cityInfo);
 		gameScreen.setRight(rightPane);
 		gameScreen.setLeft(leftBar);
 		initPlayerPositions();
 		mainPane.getChildren().addAll(gameScreen);
-		switchCards(0);
+		switchCards(activePlayer);
 	}
 
 	public void topLeft() {
@@ -214,12 +255,6 @@ public class JTEGameScreen {
 		b4.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		boardI.setLayoutX(0);
 		boardI.setLayoutY(0);
-//		Image image = ui.loadImage("gameplay_AC14.jpg");
-//		board.setImage(image);
-//		board.setPreserveRatio(true);
-//		board.setFitHeight(820);
-//		selectedQuad =1;
-//		scaleRatio = 820/image.getHeight();
 	}
 
 	public void topRight() {
@@ -230,12 +265,6 @@ public class JTEGameScreen {
 		b4.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		boardI.setLayoutX((ui.getPaneWidth() * 0.6) - ui.getJteGameScreen().getBoard().getBoundsInParent().getWidth());
 		boardI.setLayoutY(0);
-//		Image image = ui.loadImage("gameplay_DF14.jpg");
-//		board.setImage(image);
-//		board.setPreserveRatio(true);
-//		board.setFitHeight(820);
-//		selectedQuad = 2;
-//		scaleRatio = 820/image.getHeight();
 	}
 
 	public void bottomRight() {
@@ -246,12 +275,6 @@ public class JTEGameScreen {
 		b4.setStyle("-fx-background-color: #666666;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		boardI.setLayoutX((ui.getPaneWidth() * 0.6) - ui.getJteGameScreen().getBoard().getBoundsInParent().getWidth());
 		boardI.setLayoutY((ui.getPaneHeight()) - ui.getJteGameScreen().getBoard().getBoundsInParent().getHeight());
-//		Image image = ui.loadImage("gameplay_DF58.jpg");
-//		board.setImage(image);
-//		board.setPreserveRatio(true);
-//		board.setFitHeight(820);
-//		selectedQuad = 4;
-//		scaleRatio = 820/image.getHeight();
 	}
 
 	public void bottomLeft() {
@@ -262,12 +285,6 @@ public class JTEGameScreen {
 		b4.setStyle("-fx-background-color: #FFFFFF;-fx-border-width:2px;-fx-border-color:  #FF0000");
 		boardI.setLayoutX(0);
 		boardI.setLayoutY((ui.getPaneHeight()) - ui.getJteGameScreen().getBoard().getBoundsInParent().getHeight());
-//		Image image = ui.loadImage("gameplay_AC58.jpg");
-//		board.setImage(image);
-//		board.setPreserveRatio(true);
-//		board.setFitHeight(820);
-//		selectedQuad = 3;
-//		scaleRatio = 820/image.getHeight();
 	}
 
 	public int rollDie() {
@@ -278,17 +295,55 @@ public class JTEGameScreen {
 		JTEUI ui = JTEUI.getUI();
 		double scaledxO = (playerImages.get(activePlayer).getLayoutX()+10)/scaleRatio;
 		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
-		try {
-			City origin = gameData.getCity(scaledxO, scaledyO);
-			//ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
-			if(origin.getLandConnections().contains(clicked)) {
-				playerMoved(origin, clicked);
+		if (!airDisplay) {
+			try {
+                City origin = gameData.getCity(scaledxO, scaledyO);
+                //ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
+                if(origin.getLandConnections().contains(clicked)) {
+                    playerMoved(origin, clicked);
+                }
+                else if (origin.getSeaConnections().contains(clicked)) {
+                    playerMovedSea(origin, clicked);
+                }
+            } catch (CityNotFoundException e) {
+                //System.out.print("No city at given coordinates");
+            }
+		}
+		else {
+			try {
+				City origin = gameData.getCity(scaledxO, scaledyO);
+				if(origin.getAirport()!=0) {
+					if(clicked.getAirport()!=0) {
+						if(clicked.getAirport()==origin.getAirport()) {
+							playerMoved(origin, clicked);
+						}
+						else if (clicked.getAirport() == (origin.getAirport()-2) || clicked.getAirport() == (origin.getAirport()-2)) {
+							if(movesLeft>=4) {
+								movesLeft-=3;
+								fly(origin, clicked);
+							}
+						}
+						else if(origin.getAirport()%2 == 0) {
+							if(clicked.getAirport()==origin.getAirport()-1) {
+								if(movesLeft>=2) {
+									movesLeft--;
+									fly(origin, clicked);
+								}
+							}
+						}
+						else if (origin.getAirport()%2 != 0){
+							if(clicked.getAirport() == (origin.getAirport()+1)) {
+								if(movesLeft>=2) {
+									fly(origin, clicked);
+								}
+							}
+						}
+					}
+				}
+			} catch (CityNotFoundException e) {
+
 			}
-			else if (origin.getSeaConnections().contains(clicked)) {
-				playerMovedSea(origin, clicked);
-			}
-		} catch (CityNotFoundException e) {
-			//System.out.print("No city at given coordinates");
+
 		}
 	}
 
@@ -344,18 +399,18 @@ public class JTEGameScreen {
 		for(int i=0;i<humans+ai;i++) {
 			playerImages.get(i).setPreserveRatio(true);
 			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
-			System.out.println(player.get(i).getHome() + " " + player.get(i).getHome().getActualx() * scaleRatio + " " + player.get(i).getHome().getActualy() * scaleRatio);
+			System.out.println(player.get(i).getPosition() + " " + player.get(i).getPosition().getActualx() * scaleRatio + " " + player.get(i).getPosition().getActualy() * scaleRatio);
 			boardI.getChildren().add(playerImages.get(i));
-			playerImages.get(i).setLayoutX(player.get(i).getHome().getActualx() * scaleRatio - 10 - playerImages.get(i).getBoundsInParent().getMinX());
-			playerImages.get(i).setLayoutY(player.get(i).getHome().getActualy() * scaleRatio - 50 - playerImages.get(i).getBoundsInParent().getMinY());
+			playerImages.get(i).setLayoutX(player.get(i).getPosition().getActualx() * scaleRatio - 10 - playerImages.get(i).getBoundsInParent().getMinX());
+			playerImages.get(i).setLayoutY(player.get(i).getPosition().getActualy() * scaleRatio - 50 - playerImages.get(i).getBoundsInParent().getMinY());
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);
 			ds1.setColor(Color.BLACK);
 			playerImages.get(i).setEffect(ds1);
-			player.get(i).setPosition(player.get(i).getHome());
+			Tooltip.install(playerImages.get(i), new Tooltip(player.get(i).getName()));
 		}
-		drawLines(player.get(0).getHome());
+		drawLines(player.get(0).getPosition());
 	}
 
 	public double getScaleRatio() {
@@ -437,6 +492,40 @@ public class JTEGameScreen {
 		ui.getHistoryScreen().refreshHistory();
 	}
 
+	public void fly(City origin, City clicked) {
+		JTEUI ui = JTEUI.getUI();
+		double savedx, savedy;
+		ImageView planeImage = new ImageView(ui.loadImage("plane.png"));
+		savedx = playerImages.get(activePlayer).getLayoutX();
+		savedy = playerImages.get(activePlayer).getLayoutY();
+		planeImage.setLayoutY(savedy);
+		planeImage.setLayoutX(savedx);
+		planeImage.setPreserveRatio(true);
+		planeImage.setFitHeight(playerImages.get(activePlayer).getFitHeight());
+		boardI.getChildren().remove(playerImages.get(activePlayer));
+		boardI.getChildren().addAll(planeImage);
+		double xdisplacement = (clicked.getActualx() - origin.getActualx()) * scaleRatio;
+		double ydisplacement = (clicked.getActualy() - origin.getActualy()) * scaleRatio;
+		double rotate = Math.atan(ydisplacement/xdisplacement);
+		planeImage.setRotate(rotate);
+		TranslateTransition translateTransition = new TranslateTransition(Duration.millis(3000), planeImage);
+		translateTransition.setByX(xdisplacement);
+		translateTransition.setByY(ydisplacement);
+		translateTransition.play();
+		translateTransition.setOnFinished(e -> {
+			translateTransition.stop();
+			boardI.getChildren().remove(planeImage);
+			boardI.getChildren().add(playerImages.get(activePlayer));
+			playerImages.get(activePlayer).setLayoutX(savedx + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+			playerImages.get(activePlayer).setLayoutY(savedy + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			player.get(activePlayer).setPosition(clicked);
+			performChecks(clicked);
+		});
+
+		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getHistoryScreen().refreshHistory();
+	}
+
 	public void moveNoAnimate(double x, double y, City origin, City clicked) {
 		playerImages.get(activePlayer).setLayoutX(x + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
 		playerImages.get(activePlayer).setLayoutY(y + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
@@ -473,10 +562,10 @@ public class JTEGameScreen {
 		if (movesLeft <= 0 && rolled == 6) {
 			rolled = rollDie();
 			movesLeft = rolled;
-			turn.setText(names.get(activePlayer) + " Turn");
+			turn.setText(player.get(activePlayer).getName() + " Turn");
 			left.setText("Moves left : " + movesLeft);
 			roll.setText("Rolled " + rolled);
-			roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+			roll.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.02777+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
 			Image image = ui.loadImage("die_"+rolled+".jpg");
 			rolImage.setImage(image);
 			rolImage.setPreserveRatio(true);
@@ -505,13 +594,13 @@ public class JTEGameScreen {
 		activePlayer++;
 		activePlayer%=(humans+ai);
 		switchCards(activePlayer);
-		label.setValue(names.get(activePlayer));
+		label.setValue(player.get(activePlayer).getName());
 		rolled = rollDie();
 		movesLeft = rolled;
-		turn.setText(names.get(activePlayer) + " Turn");
+		turn.setText(player.get(activePlayer).getName() + " Turn");
 		left.setText("Moves left : " + movesLeft);
 		roll.setText("Rolled " + rolled);
-		roll.setStyle("-fx-font-size: 30px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+		roll.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.02777+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
 		Image image = ui.loadImage("die_"+rolled+".jpg");
 		rolImage.setImage(image);
 		rolImage.setPreserveRatio(true);
@@ -529,5 +618,37 @@ public class JTEGameScreen {
 	public void setPlayerPosition(double x, double y) {
 		playerImages.get(activePlayer).setLayoutX(x);
 		playerImages.get(activePlayer).setLayoutY(y);
+	}
+
+	public void displayInfo(City position){
+		JTEUI ui = JTEUI.getUI();
+		if(!position.getData().equals("")) {
+			VBox overlay = new VBox();
+			overlay.setMinWidth(ui.getPaneWidth()*0.6);
+			overlay.setMinHeight(ui.getPaneHeight());
+			overlay.setMaxWidth(ui.getPaneWidth() * 0.6);
+			overlay.setMaxHeight(ui.getPaneHeight());
+			overlay.setStyle("-fx-background-color:#000000;-fx-opacity:0.7;");
+			Label data = new Label(position.getData());
+			data.setStyle("-fx-text-fill:#FFFFFF;-fx-font-size:20px");
+			data.setMaxWidth(ui.getPaneWidth() * 0.4);
+			data.setWrapText(true);
+			overlay.setAlignment(Pos.CENTER);
+			Label close = new Label("Click to close");
+			close.setStyle("-fx-text-fill:#FFFFFF;-fx-font-size:10px");
+			System.out.println("Added");
+			overlay.getChildren().addAll(data, close);
+			boardPane.getChildren().add(overlay);
+			overlay.setSpacing(10);
+			overlay.setOnMouseClicked(e -> {
+				boardPane.getChildren().remove(overlay);
+				System.out.println("Removed");
+			});
+		}
+	}
+
+	public void saveGame() {
+		JTEUI ui = JTEUI.getUI();
+		ui.getFileLoader().saveGame(gameData,humans,ai,activePlayer);
 	}
 }

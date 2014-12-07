@@ -1,11 +1,13 @@
 package jte.game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by Aditya on 11/9/2014.
  */
-public class Player {
+public class Player implements Serializable{
+	String name;
 	ArrayList<City> hand;
 	String flagColor;
 	City position;
@@ -15,12 +17,17 @@ public class Player {
 		return flagColor;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	public City getHome() {
 		return home;
 	}
 
-	Player (ArrayList<City> cityList,int playerNo,int numCards){
+	Player (String name, ArrayList<City> cityList,int playerNo,int numCards){
 		System.out.println("\nPlayer : " + playerNo);
+		this.name = name;
 		hand = new ArrayList<City>();
 		String color;
 		if(playerNo%3==0) {
@@ -42,6 +49,7 @@ public class Player {
 			System.out.println(cityList.remove(0));
 		}
 		home = hand.get(0);
+		position = home;
 	}
 	public ArrayList<City> getHand() {
 		return hand;

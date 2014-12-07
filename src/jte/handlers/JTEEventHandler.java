@@ -16,8 +16,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import jte.game.JTEGameStateManager;
+import jte.game.Player;
 import jte.ui.JTEUI;
 import properties_manager.PropertiesManager;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Dictionary;
 
 public class JTEEventHandler {
 
@@ -66,11 +71,12 @@ public class JTEEventHandler {
     /**
      * This method responds to when the user presses the new game method.
      */
-    public void respondToNewGameRequest(int players, int ai,int numCards) {
+    public void respondToNewGameRequest(int players, int ai,int numCards,ArrayList<String> names) {
         JTEUI ui = JTEUI.getUI();
         JTEGameStateManager gsm = ui.getGSM();
-        gsm.startNewGame(players, ai,numCards);
+        gsm.startNewGame(players, ai,numCards, names);
     }
+
 
     /**
      * This method responds to when the user requests to exit the application.
@@ -114,6 +120,43 @@ public class JTEEventHandler {
 	        System.exit(0);
         });
         noButton.setOnAction(e -> {
+            dialogStage.close();
+        });
+    }
+
+    public void respondToSaveRequest(Stage primaryStage) {
+        // ENGLIS IS THE DEFAULT
+        String options[] = new String[]{"Save and Exit", "Exit", "Cancel"};
+        String verifyExit = "Would you like to save and exit the game?";
+
+        // FIRST MAKE SURE THE USER REALLY WANTS TO EXIT
+        Stage dialogStage = new Stage();
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(primaryStage);
+        BorderPane exitPane = new BorderPane();
+        HBox optionPane = new HBox();
+        Button yesButton = new Button(options[0]);
+        Button noButton = new Button(options[1]);
+        Button cancelButton = new Button(options[2]);
+        optionPane.setSpacing(10.0);
+        optionPane.getChildren().addAll(yesButton, noButton,cancelButton);
+        Label exitLabel = new Label(verifyExit);
+        exitPane.setCenter(exitLabel);
+        exitPane.setBottom(optionPane);
+        Scene scene = new Scene(exitPane, 250, 150);
+        dialogStage.setScene(scene);
+        dialogStage.show();
+        // WHAT'S THE USER'S DECISION?
+        noButton.setOnAction(e -> {
+            // YES, LET'S EXIT
+            System.exit(0);
+        });
+        yesButton.setOnAction(e -> {
+            JTEUI jteui = JTEUI.getUI();
+            jteui.getJteGameScreen().saveGame();
+            System.exit(0);
+        });
+        cancelButton.setOnAction(e -> {
             dialogStage.close();
         });
     }

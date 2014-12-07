@@ -4,6 +4,7 @@ import com.sun.media.jfxmedia.events.PlayerEvent;
 import jte.file.JTEFileLoader;
 import jte.ui.JTEUI;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -14,7 +15,7 @@ import java.util.HashMap;
  * that this class works in concert with the JTEGameStateManager, so all
  * instance variables have default (package-level) access.
  */
-public class JTEGameData {
+public class JTEGameData implements Serializable{
 	HashMap<String,City> cityData;
 	ArrayList<String> cityNames;
 	ArrayList<City> deck;
@@ -26,7 +27,7 @@ public class JTEGameData {
 	/*
      * Construct this object when a jte.game begins.
      */
-    public JTEGameData(int players, int ai,int numCards) {
+    public JTEGameData(int players, int ai,int numCards, ArrayList<String> names) {
 		this.ui = JTEUI.getUI();
 	    fileLoader = ui.getFileLoader();
 	    createCityData();
@@ -34,10 +35,18 @@ public class JTEGameData {
 	    createDeck();
 	    player = new ArrayList<Player>();
 		for(int i=0;i<players+ai;i++) {
-			player.add(new Player(deck, i, numCards));
+			player.add(new Player(names.get(i), deck, i, numCards));
 		}
-
     }
+
+	public JTEGameData(int player, int ai, ArrayList<Player> players) {
+		this.ui = JTEUI.getUI();
+		fileLoader = ui.getFileLoader();
+		createCityData();
+		createCityNameList();
+		createDeck();
+		this.player = players;
+	}
 
 	public ArrayList<Player> getPlayer() {
 		return player;

@@ -56,6 +56,7 @@ public class JTESplashScreen extends StackPane{
 			exit.getStylesheets().add(new File("data/css/buttons.css").toURI().toURL().toExternalForm());
 			start.setOnAction(e -> ui.switchPane(3));
 			about.setOnAction(e -> ui.switchPane(2));
+			load.setOnAction(e -> ui.loadGame());
 			exit.setOnAction(e -> ui.getEventHandler().respondToExitRequest(ui.getPrimaryStage()));
 			buttonList.getChildren().addAll(titleView, start, load, about, exit);
 			this.getChildren().add(buttonList);

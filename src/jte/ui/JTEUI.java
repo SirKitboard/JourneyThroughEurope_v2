@@ -1,5 +1,6 @@
 package jte.ui;
 
+import application.Main;
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -8,10 +9,12 @@ import javafx.stage.Stage;
 import jte.file.JTEFileLoader;
 import jte.game.City;
 import jte.game.JTEGameStateManager;
+import jte.game.Player;
 import properties_manager.PropertiesManager;
 import jte.handlers.*;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class JTEUI extends Pane {
@@ -185,10 +188,31 @@ public class JTEUI extends Pane {
 			}
 		}
 		ArrayList<String> names = playerSelectScreen.getNames(humans+ai);
-		eventHandler.respondToNewGameRequest(humans, ai, numCards);
-		jteGameScreen = new JTEGameScreen(humans,ai,names);
+		eventHandler.respondToNewGameRequest(humans, ai, numCards,names);
+		jteGameScreen = new JTEGameScreen(humans,ai);
 		switchPane(5);
 		historyScreen = new JTEHistoryScreen();
+	}
+
+	public void loadGame() {
+		try {
+			int temp[] = new int[3];
+			ArrayList<Player> players = getFileLoader().loadGame(temp);
+			int humans = temp[0];
+			int ai = temp[1];
+			int activeplayer = temp[2];
+			gsm.loadGame(humans,ai,players);
+			jteGameScreen = new JTEGameScreen(humans, ai,gsm.getGameInProgress(),activeplayer);
+			switchPane(5);
+			historyScreen = new JTEHistoryScreen();
+		} catch (IOException e) {
+			ui.getErrorHandler().processError(Main.JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			ui.getErrorHandler().processError("Invalid FIle", ui.getPrimaryStage());
+			e.printStackTrace();
+		}
+
 	}
 
 

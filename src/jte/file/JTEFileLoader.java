@@ -2,6 +2,8 @@ package jte.file;
 
 import application.Main.JTEPropertyType;
 import jte.game.City;
+import jte.game.JTEGameData;
+import jte.game.Player;
 import jte.ui.JTEUI;
 
 import java.io.*;
@@ -77,6 +79,16 @@ public class JTEFileLoader {
 				String value = cities.nextLine();
 				String[] array = value.split(",");
 				City city = new City(array[0].trim(),array[1],Integer.parseInt(array[2]),Integer.parseInt(array[3]),Integer.parseInt(array[4]),Integer.parseInt(array[7]));
+				if(!(array[8].equals("-"))) {
+					File temp = new File("data/cityInfo/"+array[8]);
+					Scanner cityScan = new Scanner(temp);
+					String citydata = cityScan.nextLine();
+					city.setData(citydata);
+				}
+				else {
+					city.setData("");
+				}
+				System.out.println(array[0]);
 				data.put(array[0],city);
 			}
 
@@ -130,5 +142,56 @@ public class JTEFileLoader {
 			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
 		}
 		return data;
+	}
+
+	public void saveGame(JTEGameData data, int humans, int ai, int activePlayer) {
+		JTEUI ui = JTEUI.getUI();
+		try {
+			File file = new File("data/savedgame.dat");
+			FileOutputStream fos = new FileOutputStream(file.getPath());
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(humans);
+			oos.writeObject(ai);
+			ArrayList<Player> players = data.getPlayer();
+
+			oos.writeObject(activePlayer);
+			for(int i=0;i<players.size();i++) {
+				oos.writeObject(players.get(i));
+			}
+		} catch (FileNotFoundException e) {
+			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
+		} catch (IOException e) {
+			ui.getErrorHandler().processError(JTEPropertyType.ERROR_INVALID_FILE, ui.getPrimaryStage());
+		}
+
+	}
+
+	public ArrayList<Player> loadGame(int temp[]) throws ClassNotFoundException, IOException {
+		JTEUI ui = JTEUI.getUI();
+
+		File file = new File("data/savedgame.dat");
+		FileInputStream fis = new FileInputStream(file.getPath());
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		int humans = (int)ois.readObject();
+		int ai = (int)ois.readObject();
+		int activePlayer = (int)ois.readObject();
+		ArrayList<Player> players = new ArrayList<Player>();
+		for(int i=0;i<(humans+ai);i++) {
+			Object temp2 = ois.readObject();
+			if(temp2 instanceof Player) {
+				players.add((Player)temp2);
+			}
+			else {
+				temp[0] = humans;
+				temp[1] = ai;
+				temp[2] = activePlayer;
+				return players;
+			}
+		}
+		temp[0] = humans;
+		temp[1] = ai;
+		temp[2] = activePlayer;
+		return players;
+
 	}
 }

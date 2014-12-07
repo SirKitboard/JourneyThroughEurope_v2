@@ -20,7 +20,18 @@ public class MouseHandler {
 	City origin, clicked;
 	public void mouseReleased(MouseEvent me) {
 		JTEUI ui = JTEUI.getUI();
-		if(dragEnabled);
+		if(dragEnabled) {
+			if(origin != null) {
+				try {
+					double scaleRatio = ui.getJteGameScreen().getScaleRatio();
+					clicked = ui.getJteGameScreen().getGameData().getCity(me.getX()/scaleRatio, me.getY()/scaleRatio);
+					if (clicked == origin)
+                        ui.mapClicked(clicked);
+				} catch (CityNotFoundException e) {
+					//Do nothing
+				}
+			}
+		}
 		else {
 			try {
 				double scaleRatio = ui.getJteGameScreen().getScaleRatio();

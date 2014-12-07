@@ -1,21 +1,28 @@
 package jte.game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by Aditya on 11/9/2014.
  */
-public class City {
+public class City implements Serializable {
 	String name;
 	String color;
+	City previous;
 	int x;
 	int y;
+	public double minDistance = Double.POSITIVE_INFINITY;
 	int actualx;
 	int actualy;
 	int airport;
-
+	String data;
 	ArrayList<City> landConnections;
 	ArrayList<City> seaConnections;
+
+	public int getAirport() {
+		return airport;
+	}
 
 	public String getName() {
 		return name;
@@ -39,6 +46,14 @@ public class City {
 	public int getY() {
 
 		return y;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	public void setData(String data) {
+		this.data = data;
 	}
 
 	public City(String name, String color, int quad, int x, int y, int airport) {

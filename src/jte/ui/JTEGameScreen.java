@@ -1,6 +1,5 @@
 package jte.ui;
 
-import com.sun.deploy.resources.Deployment_ja;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
@@ -483,6 +482,9 @@ public class JTEGameScreen {
 			playerImages.get(activePlayer).setTranslateX(0);
 			playerImages.get(activePlayer).setTranslateY(0);
 			player.get(activePlayer).setPosition(clicked);
+			if(clicked.getSeaConnections().size()>=1) {
+				movesLeft = -1;
+			}
 			performChecks(clicked);
 			animating = false;
 		});
@@ -709,6 +711,7 @@ public class JTEGameScreen {
 		if(origin.getSeaConnections().contains(destination)) {
 			playerImages.get(activePlayer).setImage(image);
 			TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+			tt.setDelay(Duration.millis(1000));
 			tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 			tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 			st.getChildren().add(tt);
@@ -737,6 +740,7 @@ public class JTEGameScreen {
 				if(origin.getLandConnections().contains(destination)) {
 					playerImages.get(activePlayer).setImage(image);
 					TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+					tt.setDelay(Duration.millis(1000));
 					tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 					tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 					st.getChildren().add(tt);
@@ -749,6 +753,7 @@ public class JTEGameScreen {
 						if (movesLeft>=2) {
 							playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
 							TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+							tt.setDelay(Duration.millis(1000));
 							tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 							tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 							st.getChildren().add(tt);
@@ -766,6 +771,7 @@ public class JTEGameScreen {
 								destination = randoms.get(0);
 								System.out.printf("Randomized : %s -> %s\n", origin, destination);
 								TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+								tt.setDelay(Duration.millis(1000));
 								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 								st.getChildren().add(tt);
@@ -780,6 +786,7 @@ public class JTEGameScreen {
 						if (movesLeft >= 4) {
 							playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
 							TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+							tt.setDelay(Duration.millis(1000));
 							tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 							tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 							st.getChildren().add(tt);
@@ -796,6 +803,7 @@ public class JTEGameScreen {
 								destination = randoms.get(0);
 								System.out.printf("Randomized : %s -> %s\n", origin, destination);
 								TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+								tt.setDelay(Duration.millis(1000));
 								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 								st.getChildren().add(tt);
@@ -810,6 +818,7 @@ public class JTEGameScreen {
 							if (movesLeft >= 4) {
 								playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
 								TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+								tt.setDelay(Duration.millis(1000));
 								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 								st.getChildren().add(tt);
@@ -826,6 +835,7 @@ public class JTEGameScreen {
 									destination = randoms.get(0);
 									System.out.printf("Randomized : %s -> %s\n", origin, destination);
 									TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+									tt.setDelay(Duration.millis(1000));
 									tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 									tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 									origin = destination;
@@ -841,6 +851,7 @@ public class JTEGameScreen {
 							if (movesLeft >= 4) {
 								playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
 								TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+								tt.setDelay(Duration.millis(1000));
 								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 								st.getChildren().add(tt);
@@ -858,6 +869,7 @@ public class JTEGameScreen {
 									destination = randoms.get(0);
 									System.out.printf("Randomized : %s -> %s\n", origin, destination);
 									TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+									tt.setDelay(Duration.millis(1000));
 									tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 									tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 									st.getChildren().add(tt);
@@ -890,6 +902,7 @@ public class JTEGameScreen {
 				destination = randoms.get(0);
 				System.out.printf("Randomized : %s -> %s\n", origin, destination);
 				TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+				tt.setDelay(Duration.millis(1000));
 				tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
 				tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
 				st.getChildren().add(tt);
@@ -898,21 +911,21 @@ public class JTEGameScreen {
 				origin = destination;
 				movesLeft--;
 			}
-
-			st.play();
-			st.setOnFinished(e -> {
-				movesLeft = -1;
-				playerImages.get(activePlayer).setImage(image);
-				playerImages.get(activePlayer).setX(destination.getActualx() * scaleRatio - ui.getPaneWidth() * 0.0052);
-				playerImages.get(activePlayer).setY(destination.getActualy() * scaleRatio - ui.getPaneHeight() * 0.0462);
-				playerImages.get(activePlayer).setTranslateX(0);
-				playerImages.get(activePlayer).setTranslateY(0);
-				player.get(activePlayer).setPosition(destination);
-				ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
-				ui.getHistoryScreen().refreshHistory();
-				endTurn();
-			});
 		}
+
+		st.play();
+		st.setOnFinished(e -> {
+			movesLeft = -1;
+			playerImages.get(activePlayer).setImage(image);
+			playerImages.get(activePlayer).setX(destination.getActualx() * scaleRatio - ui.getPaneWidth() * 0.0052);
+			playerImages.get(activePlayer).setY(destination.getActualy() * scaleRatio - ui.getPaneHeight() * 0.0462);
+			playerImages.get(activePlayer).setTranslateX(0);
+			playerImages.get(activePlayer).setTranslateY(0);
+			player.get(activePlayer).setPosition(destination);
+			ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+			ui.getHistoryScreen().refreshHistory();
+			endTurn();
+		});
 	}
 
 	/*

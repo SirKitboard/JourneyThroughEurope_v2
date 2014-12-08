@@ -1,6 +1,9 @@
 package jte.ui;
 
+import com.sun.deploy.resources.Deployment_ja;
 import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -20,21 +23,20 @@ import javafx.scene.shape.CircleBuilder;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.LineBuilder;
 import javafx.util.Duration;
-import jte.game.City;
-import jte.game.CityNotFoundException;
-import jte.game.JTEGameData;
-import jte.game.Player;
+import jte.game.*;
 import jte.handlers.MouseHandler;
 
-import java.util.ArrayList;
+import java.io.SequenceInputStream;
+import java.lang.reflect.AccessibleObject;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.jar.Pack200;
 
 /**
  * Created by Aditya on 11/9/2014.
  */
 public class JTEGameScreen {
 	BorderPane mainPane;
-	int humans;
-	int ai;
 	JTEGameData gameData;
 	Button b1;
 	Button b2;
@@ -62,11 +64,12 @@ public class JTEGameScreen {
 	Label left;
 	boolean airDisplay;
 	BorderPane gameScreen;
-	public JTEGameScreen(int humans, int ai) {
+	boolean animating = false;
+	City destination;
+	boolean ended = false;
+	public JTEGameScreen(ArrayList<Integer> humanList) {
 		JTEUI ui = JTEUI.getUI();
 		mainPane = new BorderPane();
-		this.humans = humans;
-		this.ai = ai;
 		gameData = ui.getGSM().getGameInProgress();
 		player =gameData.getPlayer();
 		mouseHandler = new MouseHandler();
@@ -98,11 +101,10 @@ public class JTEGameScreen {
 		initGameScreen(0);
 	}
 
-	public JTEGameScreen(int humans, int ai, JTEGameData data,int activePlayer) {
+	public JTEGameScreen(int numPlayers, JTEGameData data,int activePlayer) {
 		JTEUI ui = JTEUI.getUI();
 		mainPane = new BorderPane();
-		this.humans = humans;
-		this.ai = ai;
+
 		gameData = data;
 		player =gameData.getPlayer();
 		mouseHandler = new MouseHandler();
@@ -141,7 +143,7 @@ public class JTEGameScreen {
 		gameScreen = new BorderPane();
 		VBox leftBar = new VBox();
 		label = new ComboBox<String>();
-		for(int i=0;i<humans+ai;i++) {
+		for(int i=0;i<player.size();i++) {
 			label.getItems().addAll(player.get(i).getName());
 		}
 		label.setDisable(true);
@@ -293,57 +295,46 @@ public class JTEGameScreen {
 
 	public void mapClicked(City clicked) {
 		JTEUI ui = JTEUI.getUI();
-		double scaledxO = (playerImages.get(activePlayer).getLayoutX()+10)/scaleRatio;
-		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
 		if (!airDisplay) {
-			try {
-                City origin = gameData.getCity(scaledxO, scaledyO);
-                //ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
-                if(origin.getLandConnections().contains(clicked)) {
-                    playerMoved(origin, clicked);
-                }
-                else if (origin.getSeaConnections().contains(clicked)) {
-                    playerMovedSea(origin, clicked);
-                }
-            } catch (CityNotFoundException e) {
-                //System.out.print("No city at given coordinates");
+            City origin = player.get(activePlayer).getPosition();
+            //ui.getErrorHandler().processError(origin.getName(), ui.getPrimaryStage());
+            if(origin.getLandConnections().contains(clicked)) {
+                playerMoved(origin, clicked);
+            }
+            else if (origin.getSeaConnections().contains(clicked)) {
+                playerMovedSea(origin, clicked);
             }
 		}
 		else {
-			try {
-				City origin = gameData.getCity(scaledxO, scaledyO);
-				if(origin.getAirport()!=0) {
-					if(clicked.getAirport()!=0) {
-						if(clicked.getAirport()==origin.getAirport()) {
-							playerMoved(origin, clicked);
+			City origin = player.get(activePlayer).getPosition();
+			if(origin.getAirport()!=0) {
+				if(clicked.getAirport()!=0) {
+					if(clicked.getAirport()==origin.getAirport()) {
+						playerMoved(origin, clicked);
+					}
+					else if (clicked.getAirport() == (origin.getAirport()-2) || clicked.getAirport() == (origin.getAirport()-2)) {
+						if(movesLeft>=4) {
+							movesLeft-=3;
+							fly(origin, clicked);
 						}
-						else if (clicked.getAirport() == (origin.getAirport()-2) || clicked.getAirport() == (origin.getAirport()-2)) {
-							if(movesLeft>=4) {
-								movesLeft-=3;
+					}
+					else if(origin.getAirport()%2 == 0) {
+						if(clicked.getAirport()==origin.getAirport()-1) {
+							if(movesLeft>=2) {
+								movesLeft--;
 								fly(origin, clicked);
 							}
 						}
-						else if(origin.getAirport()%2 == 0) {
-							if(clicked.getAirport()==origin.getAirport()-1) {
-								if(movesLeft>=2) {
-									movesLeft--;
-									fly(origin, clicked);
-								}
-							}
-						}
-						else if (origin.getAirport()%2 != 0){
-							if(clicked.getAirport() == (origin.getAirport()+1)) {
-								if(movesLeft>=2) {
-									fly(origin, clicked);
-								}
+					}
+					else if (origin.getAirport()%2 != 0){
+						if(clicked.getAirport() == (origin.getAirport()+1)) {
+							if(movesLeft>=2) {
+								fly(origin, clicked);
 							}
 						}
 					}
 				}
-			} catch (CityNotFoundException e) {
-
 			}
-
 		}
 	}
 
@@ -381,13 +372,14 @@ public class JTEGameScreen {
 			translateTransition.setToY(5 + (counter * ui.getPaneHeight() * 0.10));
 			translateTransition.play();
 		}
-		double scaledxO = (playerImages.get(activePlayer).getLayoutX()+10)/scaleRatio;
-		double scaledyO = (playerImages.get(activePlayer).getLayoutY()+50)/scaleRatio;
+		double scaledxO = (playerImages.get(activePlayer).getX()+ui.getPaneWidth()*0.0052)/scaleRatio;
+		double scaledyO = (playerImages.get(activePlayer).getY()+ui.getPaneHeight()*0.0462)/scaleRatio;
 		try {
 			drawLines(gameData.getCity(scaledxO,scaledyO));
 		} catch (CityNotFoundException e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	public int getActivePlayer() {
@@ -396,13 +388,13 @@ public class JTEGameScreen {
 
 	void initPlayerPositions() {
 		JTEUI ui = JTEUI.getUI();
-		for(int i=0;i<humans+ai;i++) {
+		for(int i=0;i<player.size();i++) {
 			playerImages.get(i).setPreserveRatio(true);
 			playerImages.get(i).setFitHeight(ui.getPaneHeight() * 0.05);
 			System.out.println(player.get(i).getPosition() + " " + player.get(i).getPosition().getActualx() * scaleRatio + " " + player.get(i).getPosition().getActualy() * scaleRatio);
 			boardI.getChildren().add(playerImages.get(i));
-			playerImages.get(i).setLayoutX(player.get(i).getPosition().getActualx() * scaleRatio - 10 - playerImages.get(i).getBoundsInParent().getMinX());
-			playerImages.get(i).setLayoutY(player.get(i).getPosition().getActualy() * scaleRatio - 50 - playerImages.get(i).getBoundsInParent().getMinY());
+			playerImages.get(i).setX(player.get(i).getPosition().getActualx() * scaleRatio - ui.getPaneWidth()*0.0052);
+			playerImages.get(i).setY(player.get(i).getPosition().getActualy() * scaleRatio - ui.getPaneHeight()*0.0462);
 			DropShadow ds1 = new DropShadow();
 			ds1.setOffsetY(-2.0f);
 			ds1.setOffsetX(4.0f);
@@ -411,6 +403,14 @@ public class JTEGameScreen {
 			Tooltip.install(playerImages.get(i), new Tooltip(player.get(i).getName()));
 		}
 		drawLines(player.get(0).getPosition());
+
+	}
+
+	public void startGame() {
+		if(player.get(activePlayer).isAI()) {
+			List<City> path = calculateAIPath();
+			executeAIPath(path);
+		}
 	}
 
 	public double getScaleRatio() {
@@ -478,17 +478,16 @@ public class JTEGameScreen {
 		translateTransition.play();
 		translateTransition.setOnFinished(e -> {
 			translateTransition.stop();
-			TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1), playerImages.get(activePlayer));
-			translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
-			translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
-			translateTransition1.play();
-			playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
-			playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			playerImages.get(activePlayer).setX(clicked.getActualx() * scaleRatio - ui.getPaneWidth()*0.0052);
+			playerImages.get(activePlayer).setY(clicked.getActualy() * scaleRatio - ui.getPaneHeight()*0.0462);
+			playerImages.get(activePlayer).setTranslateX(0);
+			playerImages.get(activePlayer).setTranslateY(0);
 			player.get(activePlayer).setPosition(clicked);
 			performChecks(clicked);
+			animating = false;
 		});
 
-		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getFileLoader().addToHistory(clicked.getName(),player.get(activePlayer).getName());
 		ui.getHistoryScreen().refreshHistory();
 	}
 
@@ -496,40 +495,48 @@ public class JTEGameScreen {
 		JTEUI ui = JTEUI.getUI();
 		double savedx, savedy;
 		ImageView planeImage = new ImageView(ui.loadImage("plane.png"));
-		savedx = playerImages.get(activePlayer).getLayoutX();
-		savedy = playerImages.get(activePlayer).getLayoutY();
-		planeImage.setLayoutY(savedy);
-		planeImage.setLayoutX(savedx);
+		savedx = playerImages.get(activePlayer).getX();
+		savedy = playerImages.get(activePlayer).getY();
+		planeImage.setY(savedy);
+		planeImage.setX(savedx);
 		planeImage.setPreserveRatio(true);
 		planeImage.setFitHeight(playerImages.get(activePlayer).getFitHeight());
+		playerImages.get(activePlayer).setVisible(false);
 		boardI.getChildren().remove(playerImages.get(activePlayer));
 		boardI.getChildren().addAll(planeImage);
-		double xdisplacement = (clicked.getActualx() - origin.getActualx()) * scaleRatio;
-		double ydisplacement = (clicked.getActualy() - origin.getActualy()) * scaleRatio;
+		double xdisplacement = (clicked.getActualx() - origin.getActualx());
+		double ydisplacement = (clicked.getActualy() - origin.getActualy());
 		double rotate = Math.atan(ydisplacement/xdisplacement);
 		planeImage.setRotate(rotate);
 		TranslateTransition translateTransition = new TranslateTransition(Duration.millis(3000), planeImage);
-		translateTransition.setByX(xdisplacement);
-		translateTransition.setByY(ydisplacement);
+		translateTransition.setFromX(origin.getActualx() * scaleRatio);
+		translateTransition.setFromY(origin.getActualy() * scaleRatio);
+		translateTransition.setToX(clicked.getActualx() * scaleRatio);
+		translateTransition.setToY(clicked.getActualy() * scaleRatio);
 		translateTransition.play();
 		translateTransition.setOnFinished(e -> {
 			translateTransition.stop();
 			boardI.getChildren().remove(planeImage);
 			boardI.getChildren().add(playerImages.get(activePlayer));
-			playerImages.get(activePlayer).setLayoutX(savedx + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
-			playerImages.get(activePlayer).setLayoutY(savedy + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			playerImages.get(activePlayer).setVisible(false);
+			playerImages.get(activePlayer).setX(clicked.getActualx() * scaleRatio - ui.getPaneWidth() * 0.0052);
+			playerImages.get(activePlayer).setY(clicked.getActualy() * scaleRatio - ui.getPaneHeight()*0.0462);
 			player.get(activePlayer).setPosition(clicked);
 			performChecks(clicked);
+			animating=false;
 		});
 
-		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getFileLoader().addToHistory(clicked.getName(),player.get(activePlayer).getName());
 		ui.getHistoryScreen().refreshHistory();
 	}
 
 	public void moveNoAnimate(double x, double y, City origin, City clicked) {
-		playerImages.get(activePlayer).setLayoutX(x + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
-		playerImages.get(activePlayer).setLayoutY(y + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+		JTEUI ui = JTEUI.getUI();
+		playerImages.get(activePlayer).setX(clicked.getActualx() * scaleRatio);
+		playerImages.get(activePlayer).setY(clicked.getActualy() * scaleRatio);
 		player.get(activePlayer).setPosition(clicked);
+		ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+		ui.getHistoryScreen().refreshHistory();
 		performChecks(clicked);
 	}
 
@@ -538,25 +545,20 @@ public class JTEGameScreen {
 		drawLines(clicked);
 		movesLeft--;
 		left.setText("Moves left : " + movesLeft);
-		double scaledxO = (playerImages.get(activePlayer).getLayoutX() + 10) / scaleRatio;
-		double scaledyO = (playerImages.get(activePlayer).getLayoutY() + 50) / scaleRatio;
-		try {
-			City city = gameData.getCity(scaledxO, scaledyO);
-			for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
-				if (city == player.get(activePlayer).getHand().get(i)) {
-					if(player.get(activePlayer).getHome() == city) {
-						if(player.get(activePlayer).getHand().size() <=1 ){
-							ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage());
-						}
-					}
-					else {
-						player.get(activePlayer).getHand().remove(i);
-						endTurn();
+		City city = player.get(activePlayer).getPosition();
+		for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
+			if (city.equals(player.get(activePlayer).getHand().get(i))) {
+				if(player.get(activePlayer).getHome().equals(city)) {
+					if(player.get(activePlayer).getHand().size() <=1 ){
+						ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage(),player.get(activePlayer).getName());
+						ended = true;
 					}
 				}
+				else {
+					player.get(activePlayer).getHand().remove(i);
+					endTurn();
+				}
 			}
-		} catch (CityNotFoundException e1) {
-			e1.printStackTrace();
 		}
 
 		if (movesLeft <= 0 && rolled == 6) {
@@ -575,6 +577,7 @@ public class JTEGameScreen {
 		}
 	}
 
+
 	public void playerMovedSea(City origin, City clicked) {
 		if(movesLeft == rolled) {
 			movesLeft = 0;
@@ -590,21 +593,32 @@ public class JTEGameScreen {
 	}
 
 	public void endTurn() {
-		JTEUI ui = JTEUI.getUI();
-		activePlayer++;
-		activePlayer%=(humans+ai);
-		switchCards(activePlayer);
-		label.setValue(player.get(activePlayer).getName());
-		rolled = rollDie();
-		movesLeft = rolled;
-		turn.setText(player.get(activePlayer).getName() + " Turn");
-		left.setText("Moves left : " + movesLeft);
-		roll.setText("Rolled " + rolled);
-		roll.setStyle("-fx-font-size: "+ui.getPaneHeight()*0.02777+"px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
-		Image image = ui.loadImage("die_"+rolled+".jpg");
-		rolImage.setImage(image);
-		rolImage.setPreserveRatio(true);
-		rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
+		if(!ended) {
+			JTEUI ui = JTEUI.getUI();
+			activePlayer++;
+			activePlayer %= (player.size());
+			switchCards(activePlayer);
+			label.setValue(player.get(activePlayer).getName());
+			rolled = rollDie();
+			movesLeft = rolled;
+			turn.setText(player.get(activePlayer).getName() + " Turn");
+			left.setText("Moves left : " + movesLeft);
+			roll.setText("Rolled " + rolled);
+			roll.setStyle("-fx-font-size: " + ui.getPaneHeight() * 0.02777 + "px;-fx-font-family: \"Bauhaus 93\";-fx-text-fill:#FF0000");
+			Image image = ui.loadImage("die_" + rolled + ".jpg");
+			rolImage.setImage(image);
+			rolImage.setPreserveRatio(true);
+			rolImage.setFitWidth(ui.getPaneWidth() * 0.100);
+			if (player.get(activePlayer).isAI()) {
+				List<City> path = calculateAIPath();
+				executeAIPath(path);
+			}
+		}
+		else {
+			for(int i=0;i<player.size();i++) {
+				player.get(i).setAI(false);
+			}
+		}
 	}
 
 	public ImageView getActivePlayerImage() {
@@ -616,8 +630,8 @@ public class JTEGameScreen {
 	}
 
 	public void setPlayerPosition(double x, double y) {
-		playerImages.get(activePlayer).setLayoutX(x);
-		playerImages.get(activePlayer).setLayoutY(y);
+		playerImages.get(activePlayer).setX(x);
+		playerImages.get(activePlayer).setY(y);
 	}
 
 	public void displayInfo(City position){
@@ -649,6 +663,392 @@ public class JTEGameScreen {
 
 	public void saveGame() {
 		JTEUI ui = JTEUI.getUI();
-		ui.getFileLoader().saveGame(gameData,humans,ai,activePlayer);
+		ui.getFileLoader().saveGame(gameData,player.size(),activePlayer);
 	}
+
+
+	public List<City> calculateAIPath() {
+		//.setEnabled(false);
+		ArrayList<City> hand = player.get(activePlayer).getHand();
+		City origin = player.get(activePlayer).getPosition();
+		Dijkstra.computePaths(origin);
+		List<List<City>> paths = new ArrayList<List<City>>();
+		for(int i=0;i<hand.size();i++) {
+			if(hand.size()==1) {
+				paths.add(Dijkstra.getShortestPathTo(hand.get(i)));
+				break;
+			}
+			else if(!(hand.get(i).equals(player.get(activePlayer).getHome()))) {
+				paths.add(Dijkstra.getShortestPathTo(hand.get(i)));
+			}
+		}
+		Collections.sort(paths,new ListLengthComparator());
+		gameData.resetAllCalculations();
+		return paths.get(0);
+	}
+
+	public void executeAIPath(List<City> path) {
+		System.out.println(activePlayer + " " + path);
+		JTEUI ui = JTEUI.getUI();
+		City origin = player.get(activePlayer).getPosition();
+		SequentialTransition st = new SequentialTransition();
+		if(path.size()==1) {
+			ArrayList<City> randoms = origin.getLandConnections();
+			Collections.shuffle(randoms);
+			destination = randoms.get(0);
+		}
+		else {
+			destination = path.get(1);
+		}
+		Image image = playerImages.get(activePlayer).getImage();
+		boolean toBreak = false;
+		while(rolled==6) {
+			rolled = rollDie();
+			movesLeft+=rolled;
+		}
+		if(origin.getSeaConnections().contains(destination)) {
+			playerImages.get(activePlayer).setImage(image);
+			TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+			tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+			tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+			st.getChildren().add(tt);
+			ui.getFileLoader().addToHistory(destination.getName(), player.get(activePlayer).getName());
+			ui.getHistoryScreen().refreshHistory();
+			path.remove(0);
+			movesLeft = -1;
+		}
+		else {
+			while (movesLeft > 0 && path.size()>=2) {
+				origin = path.get(0);
+				destination = path.get(1);
+				if(movesLeft != rolled) {
+					if(player.get(activePlayer).getHand().size() == 1) {
+						if(player.get(activePlayer).getPosition().equals(player.get(activePlayer).getHome())) {
+							ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage(), player.get(activePlayer).getName());
+							ended = true;
+						}
+					}
+					else if (player.get(activePlayer).getHand().contains(origin)) {
+						movesLeft = -1;
+						break;
+					}
+				}
+				System.out.printf("%s -> %s\n", origin, destination);
+				if(origin.getLandConnections().contains(destination)) {
+					playerImages.get(activePlayer).setImage(image);
+					TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+					tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+					tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+					st.getChildren().add(tt);
+					ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+					ui.getHistoryScreen().refreshHistory();
+					path.remove(0);
+				}
+				else if(origin.getAirport()!=0) {
+					if (destination.getAirport() == origin.getAirport()) {
+						if (movesLeft>=2) {
+							playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
+							TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+							tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+							tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+							st.getChildren().add(tt);
+							ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+							ui.getHistoryScreen().refreshHistory();
+							movesLeft-=1;
+							path.remove(0);
+
+						}
+						else {
+							while(movesLeft>0) {
+								ArrayList<City> randoms = origin.getLandConnections();
+								Collections.shuffle(randoms);
+								playerImages.get(activePlayer).setImage(image);
+								destination = randoms.get(0);
+								System.out.printf("Randomized : %s -> %s\n", origin, destination);
+								TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+								st.getChildren().add(tt);
+								origin = destination;
+								ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+								ui.getHistoryScreen().refreshHistory();
+								movesLeft--;
+							}
+						}
+					}
+					if (destination.getAirport() == (origin.getAirport() - 2) || destination.getAirport() == (origin.getAirport() - 2)) {
+						if (movesLeft >= 4) {
+							playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
+							TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+							tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+							tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+							st.getChildren().add(tt);
+							ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+							ui.getHistoryScreen().refreshHistory();
+							movesLeft -= 3;
+							path.remove(0);
+						}
+						else {
+							while(movesLeft>0) {
+								ArrayList<City> randoms = origin.getLandConnections();
+								Collections.shuffle(randoms);
+								playerImages.get(activePlayer).setImage(image);
+								destination = randoms.get(0);
+								System.out.printf("Randomized : %s -> %s\n", origin, destination);
+								TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+								st.getChildren().add(tt);
+								origin = destination;
+								ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+								ui.getHistoryScreen().refreshHistory();
+								movesLeft--;
+							}
+						}
+					} else if (origin.getAirport() % 2 == 0) {
+						if (destination.getAirport() == origin.getAirport() - 1) {
+							if (movesLeft >= 4) {
+								playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
+								TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+								st.getChildren().add(tt);
+								ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+								ui.getHistoryScreen().refreshHistory();
+								movesLeft -= 3;
+								path.remove(0);
+							}
+							else {
+								while(movesLeft>0) {
+									ArrayList<City> randoms = origin.getLandConnections();
+									Collections.shuffle(randoms);
+									playerImages.get(activePlayer).setImage(image);
+									destination = randoms.get(0);
+									System.out.printf("Randomized : %s -> %s\n", origin, destination);
+									TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+									tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+									tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+									origin = destination;
+									ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+									ui.getHistoryScreen().refreshHistory();
+									movesLeft--;
+								}
+							}
+						}
+
+					} else if (origin.getAirport() % 2 != 0) {
+						if (destination.getAirport() == (origin.getAirport() + 1)) {
+							if (movesLeft >= 4) {
+								playerImages.get(activePlayer).setImage(ui.loadImage("plane.png"));
+								TranslateTransition tt = new TranslateTransition(Duration.millis(1000),playerImages.get(activePlayer));
+								tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+								tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+								st.getChildren().add(tt);
+								ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+								ui.getHistoryScreen().refreshHistory();
+								movesLeft -= 3;
+								path.remove(0);
+
+							}
+							else {
+								while(movesLeft>0) {
+									ArrayList<City> randoms = origin.getLandConnections();
+									Collections.shuffle(randoms);
+									playerImages.get(activePlayer).setImage(image);
+									destination = randoms.get(0);
+									System.out.printf("Randomized : %s -> %s\n", origin, destination);
+									TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+									tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+									tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+									st.getChildren().add(tt);
+									ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+									ui.getHistoryScreen().refreshHistory();
+									origin = destination;
+									movesLeft--;
+								}
+							}
+						}
+					}
+				}
+				if(player.get(activePlayer).getHand().size()==1) {
+					if(player.get(activePlayer).getHome().equals(destination)){
+						ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage(), player.get(activePlayer).getName());
+						ended = true;
+					}
+				}
+				if (player.get(activePlayer).getHand().contains(destination)) {
+					player.get(activePlayer).getHand().remove(player.get(activePlayer).getHand().indexOf(destination));
+					movesLeft = -1;
+				}
+				movesLeft--;
+			}
+
+			while(movesLeft>0) {
+				ArrayList<City> randoms = origin.getLandConnections();
+				Collections.shuffle(randoms);
+				playerImages.get(activePlayer).setImage(image);
+				destination = randoms.get(0);
+				System.out.printf("Randomized : %s -> %s\n", origin, destination);
+				TranslateTransition tt = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+				tt.setByX((destination.getActualx() - origin.getActualx()) * scaleRatio);
+				tt.setByY((destination.getActualy() - origin.getActualy()) * scaleRatio);
+				st.getChildren().add(tt);
+				ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+				ui.getHistoryScreen().refreshHistory();
+				origin = destination;
+				movesLeft--;
+			}
+
+			st.play();
+			st.setOnFinished(e -> {
+				movesLeft = -1;
+				playerImages.get(activePlayer).setImage(image);
+				playerImages.get(activePlayer).setX(destination.getActualx() * scaleRatio - ui.getPaneWidth() * 0.0052);
+				playerImages.get(activePlayer).setY(destination.getActualy() * scaleRatio - ui.getPaneHeight() * 0.0462);
+				playerImages.get(activePlayer).setTranslateX(0);
+				playerImages.get(activePlayer).setTranslateY(0);
+				player.get(activePlayer).setPosition(destination);
+				ui.getFileLoader().addToHistory(destination.getName(),player.get(activePlayer).getName());
+				ui.getHistoryScreen().refreshHistory();
+				endTurn();
+			});
+		}
+	}
+
+	/*
+	public void executeAIPath(List<City> path) {
+		JTEUI ui = JTEUI.getUI();
+		City origin = path.get(0);
+		drawLines(origin);
+		left.setText("Moves left : " + movesLeft);
+		City city = player.get(activePlayer).getPosition();
+		for (int i = 0; i < player.get(activePlayer).getHand().size(); i++) {
+			if (city == player.get(activePlayer).getHand().get(i)) {
+				if(player.get(activePlayer).getHome() == city) {
+					if(player.get(activePlayer).getHand().size() <=1 ){
+						ui.getEventHandler().respondToWinRequest(ui.getPrimaryStage());
+					}
+				}
+				else {
+					player.get(activePlayer).getHand().remove(i);
+					endTurn();
+				}
+			}
+		}
+		if(path.size()<2) {
+			path = calculateAIPath2();
+		}
+		City destination = path.get(1);
+		System.out.println(activePlayer + " " + "From " + origin + " " + " To " + destination);
+		if(movesLeft==rolled) {
+			if (origin.getSeaConnections().contains(destination)) {
+				animating = true;
+				playerMovedSea(origin, destination);
+				return;
+			}
+		}
+		if(movesLeft>0) {
+			if (origin.getLandConnections().contains(destination)) {
+				playerMoved(origin, destination, path);
+			} else if (origin.getAirport() != 0) {
+				if (destination.getAirport() != 0) {
+					if (destination.getAirport() == origin.getAirport()) {
+						movesLeft--;
+						fly(origin, destination, path);
+					} else if (destination.getAirport() == (origin.getAirport() - 2) || destination.getAirport() == (origin.getAirport() - 2)) {
+						if (movesLeft >= 4) {
+							movesLeft -= 3;
+							fly(origin, destination, path);
+						}
+					} else if (origin.getAirport() % 2 == 0) {
+						if (destination.getAirport() == origin.getAirport() - 1) {
+							if (movesLeft >= 4) {
+								movesLeft -= 3;
+								fly(origin, destination, path);
+							}
+						}
+					} else if (origin.getAirport() % 2 != 0) {
+						if (destination.getAirport() == (origin.getAirport() + 1)) {
+							if (movesLeft >= 4) {
+								movesLeft -= 3;
+								fly(origin, destination, path);
+							}
+						}
+					}
+				}
+			} else {
+				ArrayList<City> randoms = origin.getLandConnections();
+				Collections.shuffle(randoms);
+				playerMoved(origin, randoms.get(0), path);
+			}
+		}
+		else {
+			gameData.resetAllCalculations();
+			endTurn();
+		}
+	}
+
+
+
+	public void playerMoved(City origin, City clicked, List<City> path) {
+		JTEUI ui = JTEUI.getUI();
+
+		TranslateTransition translateTransition = new TranslateTransition(Duration.millis(1000), playerImages.get(activePlayer));
+		translateTransition.setByX((clicked.getActualx() - origin.getActualx()) * scaleRatio);
+		translateTransition.setByY((clicked.getActualy() - origin.getActualy()) * scaleRatio);
+		translateTransition.play();
+		translateTransition.setOnFinished(e -> {
+			translateTransition.stop();
+			TranslateTransition translateTransition1 = new TranslateTransition(Duration.millis(1), playerImages.get(activePlayer));
+			translateTransition1.setByX((origin.getActualx() - clicked.getActualx()) * scaleRatio);
+			translateTransition1.setByY((origin.getActualy() - clicked.getActualy()) * scaleRatio);
+			translateTransition1.play();
+			playerImages.get(activePlayer).setLayoutX(playerImages.get(activePlayer).getLayoutX() + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+			playerImages.get(activePlayer).setLayoutY(playerImages.get(activePlayer).getLayoutY() + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			player.get(activePlayer).setPosition(clicked);
+			path.remove(0);
+			movesLeft--;
+			executeAIPath(path);
+		});
+
+		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getHistoryScreen().refreshHistory();
+	}
+
+	public void fly(City origin, City clicked, List<City> path) {
+		JTEUI ui = JTEUI.getUI();
+		double savedx, savedy;
+		ImageView planeImage = new ImageView(ui.loadImage("plane.png"));
+		savedx = playerImages.get(activePlayer).getLayoutX();
+		savedy = playerImages.get(activePlayer).getLayoutY();
+		planeImage.setLayoutY(savedy);
+		planeImage.setLayoutX(savedx);
+		planeImage.setPreserveRatio(true);
+		planeImage.setFitHeight(playerImages.get(activePlayer).getFitHeight());
+		playerImages.get(activePlayer).setVisible(false);
+		boardI.getChildren().addAll(planeImage);
+		double xdisplacement = (clicked.getActualx() - origin.getActualx()) * scaleRatio;
+		double ydisplacement = (clicked.getActualy() - origin.getActualy()) * scaleRatio;
+		double rotate = Math.atan(ydisplacement/xdisplacement);
+		planeImage.setRotate(rotate);
+		TranslateTransition translateTransition = new TranslateTransition(Duration.millis(3000), planeImage);
+		translateTransition.setByX(xdisplacement);
+		translateTransition.setByY(ydisplacement);
+		translateTransition.play();
+		translateTransition.setOnFinished(e -> {
+			translateTransition.stop();
+			boardI.getChildren().remove(planeImage);
+			playerImages.get(activePlayer).setVisible(true);
+			playerImages.get(activePlayer).setLayoutX(savedx + (clicked.getActualx() - origin.getActualx()) * scaleRatio);
+			playerImages.get(activePlayer).setLayoutY(savedy + (clicked.getActualy() - origin.getActualy()) * scaleRatio);
+			player.get(activePlayer).setPosition(clicked);
+			path.remove(0);
+			movesLeft--;
+			executeAIPath(path);
+		});
+
+		ui.getFileLoader().addToHistory(clicked.getName());
+		ui.getHistoryScreen().refreshHistory();
+	}
+	*/
 }

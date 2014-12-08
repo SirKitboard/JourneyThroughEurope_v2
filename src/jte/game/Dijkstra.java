@@ -1,5 +1,7 @@
 package jte.game;
 
+import jte.ui.JTEUI;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,41 +42,50 @@ public class Dijkstra {
                 }
             }
 
-            if(u.getAirport() != 0) {
-
+            JTEUI ui = JTEUI.getUI();
+            JTEGameStateManager gsm = ui.getGSM();
+            JTEGameData jteGameData = gsm.getGameInProgress();
+            for(int i=0;i<jteGameData.airports.size();i++) {
+                City v = jteGameData.airports.get(i);
+                double weight = 20;
+                if(v.getAirport()==u.getAirport()) {
+                    weight = 2;
+                }
+                else if (v.getAirport() == (u.getAirport()-2) || v.getAirport() == (u.getAirport()-2)) {
+                    weight = 4;
+                }
+                else if(u.getAirport()%2 == 0) {
+                    if(v.getAirport()==u.getAirport()-1) {
+                        weight = 4;
+                    }
+                }
+                else if (u.getAirport()%2 != 0){
+                    if(v.getAirport() == (u.getAirport()+1)) {
+                        weight = 4;
+                    }
+                }
+                double distanceThroughU = u.minDistance + weight;
+                if (distanceThroughU < v.minDistance) {
+                    vertexQueue.remove(v);
+                    v.minDistance = distanceThroughU;
+                    v.previous = u;
+                    vertexQueue.add(v);
+                }
             }
         }
     }
-    public static List<City> getShortestPathTo(City target) {
+    public static List<City> getShortestPathTo(City target2) {
+        JTEUI ui = JTEUI.getUI();
+        City target = ui.getGSM().getGameInProgress().getCityData().get(target2.getName());
         List<City> path = new ArrayList<City>();
         for (City vertex = target; vertex != null; vertex = vertex.previous)
-            path.add(vertex);
+            if(!path.contains(vertex)) {
+                path.add(vertex);
+            }
+            else {
+                vertex.previous = null;
+            }
         Collections.reverse(path);
         return path;
     }
-    /*public static void main(String[] args) {
-        Vertex v0 = new Vertex("London");
-        Vertex v1 = new Vertex("Dover");
-        Vertex v2 = new Vertex("Calais");
-        Vertex v3 = new Vertex("Paris");
-        Vertex v4 = new Vertex("Rotterdam");
-        Vertex v5 = new Vertex("Brussels");
-        Vertex v6 = new Vertex("Lille");
-        v0.adjacencies = new Edge[] { new Edge(v1, 1), new Edge(v4, 6), new Edge(v3, 2) };
-        v1.adjacencies = new Edge[] { new Edge(v0, 1), new Edge(v2, 1) };
-        v2.adjacencies = new Edge[] { new Edge(v1, 1), new Edge(v3, 1), new Edge(v6, 1) };
-        v3.adjacencies = new Edge[] { new Edge(v0, 2), new Edge(v2, 1), new Edge(v6, 1) };
-        v4.adjacencies = new Edge[] { new Edge(v0, 6), new Edge(v5, 1) };
-        v5.adjacencies = new Edge[] { new Edge(v4, 1), new Edge(v6, 1) };
-        v6.adjacencies = new Edge[] { new Edge(v3, 1), new Edge(v5, 1) };
-        Vertex[] vertices = { v0, v1, v2, v3, v4, v5, v6 };
-// Paths from London
-        computePaths(v0);
-        for (Vertex v : vertices) {
-            System.out.println("Distance from London to " + v + ": "
-                    + v.minDistance);
-            List<Vertex> path = getShortestPathTo(v);
-            System.out.println("Path: " + path);
-        }
-    }*/
 }

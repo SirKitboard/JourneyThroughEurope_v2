@@ -87,8 +87,8 @@ public class MouseHandler {
 			if(origin.getName().equals(ui.getJteGameScreen().getActive().getPosition().getName())) {
 				dragEnabled = false;
 				ImageView player = ui.getJteGameScreen().getActivePlayerImage();
-				origx = player.getLayoutX();
-				origy = player.getLayoutY();
+				origx = player.getX();
+				origy = player.getY();
 			}
 			else {
 				dragEnabled = true;

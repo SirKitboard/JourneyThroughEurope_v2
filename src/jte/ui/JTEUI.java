@@ -177,32 +177,31 @@ public class JTEUI extends Pane {
 	}
 
 	public void startGame(int no, int numCards) {
-		int humans=0;
-		int ai=0;
+		ArrayList<Integer> humansList = new ArrayList<>();
 		for(int i=0;i<no;i++) {
 			if(playerSelectScreen.getRadios().get(i).isSelected()) {
-				humans++;
+				humansList.add(1);
 			}
 			else {
-				ai++;
+				humansList.add(0);
 			}
 		}
-		ArrayList<String> names = playerSelectScreen.getNames(humans+ai);
-		eventHandler.respondToNewGameRequest(humans, ai, numCards,names);
-		jteGameScreen = new JTEGameScreen(humans,ai);
+		ArrayList<String> names = playerSelectScreen.getNames(humansList.size());
+		eventHandler.respondToNewGameRequest(humansList, numCards, names);
+		jteGameScreen = new JTEGameScreen(humansList);
 		switchPane(5);
 		historyScreen = new JTEHistoryScreen();
+		jteGameScreen.startGame();
 	}
 
 	public void loadGame() {
 		try {
-			int temp[] = new int[3];
+			int temp[] = new int[2];
 			ArrayList<Player> players = getFileLoader().loadGame(temp);
-			int humans = temp[0];
-			int ai = temp[1];
-			int activeplayer = temp[2];
-			gsm.loadGame(humans,ai,players);
-			jteGameScreen = new JTEGameScreen(humans, ai,gsm.getGameInProgress(),activeplayer);
+			int numplayers = temp[0];
+			int activeplayer = temp[1];
+			gsm.loadGame(numplayers,players);
+			jteGameScreen = new JTEGameScreen(numplayers,gsm.getGameInProgress(),activeplayer);
 			switchPane(5);
 			historyScreen = new JTEHistoryScreen();
 		} catch (IOException e) {

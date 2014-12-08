@@ -12,7 +12,7 @@ public class Player implements Serializable{
 	String flagColor;
 	City position;
 	City home;
-
+	boolean isAI;
 	public String getFlagColor() {
 		return flagColor;
 	}
@@ -25,7 +25,7 @@ public class Player implements Serializable{
 		return home;
 	}
 
-	Player (String name, ArrayList<City> cityList,int playerNo,int numCards){
+	Player (String name, ArrayList<City> cityList,int playerNo,int numCards, boolean isAI){
 		System.out.println("\nPlayer : " + playerNo);
 		this.name = name;
 		hand = new ArrayList<City>();
@@ -50,6 +50,7 @@ public class Player implements Serializable{
 		}
 		home = hand.get(0);
 		position = home;
+		this.isAI = isAI;
 	}
 	public ArrayList<City> getHand() {
 		return hand;
@@ -62,5 +63,13 @@ public class Player implements Serializable{
 	public void setPosition(City position) {
 
 		this.position = position;
+	}
+
+	public boolean isAI() {
+		return isAI;
+	}
+
+	public void setAI(boolean ai) {
+		isAI = ai;
 	}
 }

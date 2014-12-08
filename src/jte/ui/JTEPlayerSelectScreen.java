@@ -75,6 +75,7 @@ public class JTEPlayerSelectScreen extends BorderPane{
 			aiRadio.add(cpu);
 			playerT.setToggleGroup(playerType);
 			cpu.setToggleGroup(playerType);
+			cpu.setSelected(true);
 			toggles.getChildren().addAll(playerT, cpu);
 			playerSelect.setCenter(toggles);
 			playerSelect.setRight(name);

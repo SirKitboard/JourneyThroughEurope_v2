@@ -6,7 +6,7 @@ import java.util.ArrayList;
 /**
  * Created by Aditya on 11/9/2014.
  */
-public class City implements Serializable {
+public class City implements Serializable, Comparable<City> {
 	String name;
 	String color;
 	City previous;
@@ -19,6 +19,10 @@ public class City implements Serializable {
 	String data;
 	ArrayList<City> landConnections;
 	ArrayList<City> seaConnections;
+
+	public int compareTo(City other) {
+		return Double.compare(minDistance, other.minDistance);
+	}
 
 	public int getAirport() {
 		return airport;
@@ -103,5 +107,19 @@ public class City implements Serializable {
 
 	public String toString() {
 		return color+"/"+name.toUpperCase()+".jpg";
+	}
+
+	@Override
+	public boolean equals(Object object)
+	{
+		boolean sameSame = false;
+
+		if (object != null && object instanceof City)
+		{
+			if(this.name.equalsIgnoreCase(((City) object).getName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

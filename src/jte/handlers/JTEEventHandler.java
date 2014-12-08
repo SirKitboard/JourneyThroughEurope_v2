@@ -21,6 +21,7 @@ import jte.ui.JTEUI;
 import properties_manager.PropertiesManager;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Dictionary;
 
@@ -31,7 +32,7 @@ public class JTEEventHandler {
      */
     public JTEEventHandler(){}
 
-    public void respondToWinRequest(Stage primaryStage) {
+    public void respondToWinRequest(Stage primaryStage, String name) {
         JTEUI jteui = JTEUI.getUI();
         String options[] = new String[]{"OK"};
         // FIRST MAKE SURE THE USER REALLY WANTS TO EXIT
@@ -45,7 +46,7 @@ public class JTEEventHandler {
         optionPane.getChildren().addAll(yesButton);
         StackPane textPane = new StackPane();
         textPane.setPadding(jteui.getMarginlessInsets());
-        Text exitLabel = new Text("YOU WIN!\nHead Back to the Main screen?");
+        Text exitLabel = new Text(name + " WINS!\nHead Back to the Main screen?");
         exitLabel.setFont(Font.font("Calibri"));
         exitLabel.setStyle("-fx-text-alignment:center");
         Image wini = jteui.loadImage("trophy.png");
@@ -66,15 +67,20 @@ public class JTEEventHandler {
             jteui.switchPane(0);
             dialogStage.close();
         });
+        dialogStage.setOnCloseRequest(e -> {
+            // YES, LET'S EXIT
+            jteui.switchPane(0);
+            dialogStage.close();
+        });
     }
 
     /**
      * This method responds to when the user presses the new game method.
      */
-    public void respondToNewGameRequest(int players, int ai,int numCards,ArrayList<String> names) {
+    public void respondToNewGameRequest(ArrayList<Integer> humanList,int numCards,ArrayList<String> names) {
         JTEUI ui = JTEUI.getUI();
         JTEGameStateManager gsm = ui.getGSM();
-        gsm.startNewGame(players, ai,numCards, names);
+        gsm.startNewGame(humanList,numCards, names);
     }
 
 

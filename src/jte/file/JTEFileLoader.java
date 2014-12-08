@@ -31,14 +31,14 @@ public class JTEFileLoader {
 		}
 	}
 
-	public void addToHistory(String city) {
+	public void addToHistory(String city, String name) {
 		String htmlCode = "";
 		try {
 			Scanner in = new Scanner(new File("data/statsHTML.html"));
 			while(in.hasNext()) {
 				htmlCode+=in.nextLine()+"\n";
 			}
-			htmlCode = htmlCode.replaceAll("</table>", "<tr><td>1</td><td>" + city + "</td></tr>\n</table>");
+			htmlCode = htmlCode.replaceAll("</table>", "<tr><td>"+name+"</td><td>" + city + "</td></tr>\n</table>");
 			File file = new File("data/statsHTML.html");
 			file.delete();
 			BufferedWriter out = new BufferedWriter(new FileWriter(file));
@@ -144,14 +144,13 @@ public class JTEFileLoader {
 		return data;
 	}
 
-	public void saveGame(JTEGameData data, int humans, int ai, int activePlayer) {
+	public void saveGame(JTEGameData data, int numplayers, int activePlayer) {
 		JTEUI ui = JTEUI.getUI();
 		try {
 			File file = new File("data/savedgame.dat");
 			FileOutputStream fos = new FileOutputStream(file.getPath());
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(humans);
-			oos.writeObject(ai);
+			oos.writeObject(numplayers);
 			ArrayList<Player> players = data.getPlayer();
 
 			oos.writeObject(activePlayer);
@@ -172,25 +171,22 @@ public class JTEFileLoader {
 		File file = new File("data/savedgame.dat");
 		FileInputStream fis = new FileInputStream(file.getPath());
 		ObjectInputStream ois = new ObjectInputStream(fis);
-		int humans = (int)ois.readObject();
-		int ai = (int)ois.readObject();
+		int numplayers = (int)ois.readObject();;
 		int activePlayer = (int)ois.readObject();
 		ArrayList<Player> players = new ArrayList<Player>();
-		for(int i=0;i<(humans+ai);i++) {
+		for(int i=0;i<(numplayers);i++) {
 			Object temp2 = ois.readObject();
 			if(temp2 instanceof Player) {
 				players.add((Player)temp2);
 			}
 			else {
-				temp[0] = humans;
-				temp[1] = ai;
-				temp[2] = activePlayer;
+				temp[0] = numplayers;
+				temp[1] = activePlayer;
 				return players;
 			}
 		}
-		temp[0] = humans;
-		temp[1] = ai;
-		temp[2] = activePlayer;
+		temp[0] = numplayers;
+		temp[1] = activePlayer;
 		return players;
 
 	}
